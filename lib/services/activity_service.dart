@@ -7,7 +7,7 @@ class ActivityService {
   factory ActivityService() => _instance;
   ActivityService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Create a new activity
   Future<Activity> createActivity({

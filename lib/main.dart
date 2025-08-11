@@ -47,9 +47,12 @@ void main() async {
       url: AppConfig.supabaseUrl,
       anonKey: AppConfig.supabaseAnonKey,
     );
+    debugPrint('✅ Supabase initialized successfully');
   } catch (e) {
     // Supabase initialization failed - handle gracefully
-    debugPrint('Failed to initialize Supabase: $e');
+    debugPrint('❌ Failed to initialize Supabase: $e');
+    // Continue running the app even if Supabase fails to initialize
+    // Services will handle the case where Supabase is not available
   }
 
   // Initialize auto-updater

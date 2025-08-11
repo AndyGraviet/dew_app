@@ -9,7 +9,7 @@ class SupabaseAuthService {
   factory SupabaseAuthService() => _instance;
   SupabaseAuthService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
   
   // Configure GoogleSignIn - use iOS client ID for native sign-in
   final GoogleSignIn _googleSignIn = GoogleSignIn(

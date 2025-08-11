@@ -7,7 +7,7 @@ class TodoListService {
   factory TodoListService() => _instance;
   TodoListService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
   final SupabaseAuthService _authService = SupabaseAuthService();
 
   // Ensure user record exists in database using auth service

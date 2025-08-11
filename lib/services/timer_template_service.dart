@@ -6,7 +6,7 @@ class TimerTemplateService {
   factory TimerTemplateService() => _instance;
   TimerTemplateService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Get all timer templates for current user
   Future<List<TimerTemplate>> getUserTimerTemplates() async {

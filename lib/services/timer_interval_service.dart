@@ -7,7 +7,7 @@ class TimerIntervalService {
   factory TimerIntervalService() => _instance;
   TimerIntervalService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Get all intervals for a timer session
   Future<List<TimerInterval>> getSessionIntervals(String timerSessionId) async {

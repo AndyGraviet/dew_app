@@ -7,7 +7,7 @@ class FriendshipService {
   factory FriendshipService() => _instance;
   FriendshipService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Send friend request
   Future<Friendship> sendFriendRequest(String addresseeId) async {

@@ -7,7 +7,7 @@ class KudosService {
   factory KudosService() => _instance;
   KudosService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Send kudos
   Future<Kudos> sendKudos({

@@ -6,7 +6,7 @@ class TaskService {
   factory TaskService() => _instance;
   TaskService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Get all tasks for a todo list
   Future<List<Task>> getTasks(String todoListId) async {

@@ -8,7 +8,7 @@ class TimerSessionService {
   factory TimerSessionService() => _instance;
   TimerSessionService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Get current active timer session
   Future<TimerSession?> getCurrentActiveSession() async {

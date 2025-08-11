@@ -8,7 +8,7 @@ class ListShareService {
   factory ListShareService() => _instance;
   ListShareService._internal();
 
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   // Share a todo list with another user
   Future<ListShare> shareList({
