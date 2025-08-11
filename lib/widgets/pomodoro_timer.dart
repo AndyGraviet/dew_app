@@ -229,7 +229,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
       final template = await _timerTemplateService.ensureDefaultTemplate();
       _applyTemplate(template);
     } catch (error) {
-      print('Error loading default template: $error');
+      debugPrint('Error loading default template: $error');
       // Continue with default values if template loading fails
     }
   }
@@ -303,13 +303,13 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
         // Session progress
         Text(
           _buildSessionText(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.white.withOpacity(0.7)),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.white.withValues(alpha: 0.7)),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
           _currentTemplate?.name ?? 'Focus Timer',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.white.withOpacity(0.9)),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.white.withValues(alpha: 0.9)),
         ),
         const SizedBox(height: 32),
         _buildControls(),
@@ -344,7 +344,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
               painter: TimerPainter(
                 progress: 1 - (_timeLeft / _totalTime), // Invert for clockwise
                 color: Colors.white,
-                backgroundColor: Colors.white.withOpacity(0.3),
+                backgroundColor: Colors.white.withValues(alpha: 0.3),
               ),
             ),
             Text(
@@ -371,7 +371,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
         _buildControlButton(
           onPressed: _resetSessions,
           icon: Icons.replay,
-          backgroundColor: AppTheme.white.withOpacity(0.2),
+          backgroundColor: AppTheme.white.withValues(alpha: 0.2),
           iconColor: AppTheme.white,
           semanticsLabel: 'Reset timer and sessions',
         ),
@@ -390,7 +390,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
         _buildControlButton(
           onPressed: _openTemplateSelector,
           icon: Icons.settings,
-          backgroundColor: AppTheme.white.withOpacity(0.2),
+          backgroundColor: AppTheme.white.withValues(alpha: 0.2),
           iconColor: AppTheme.white,
           semanticsLabel: 'Open timer template settings',
         ),

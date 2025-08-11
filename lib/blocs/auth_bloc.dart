@@ -11,7 +11,9 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class AuthCheckRequested extends AuthEvent {}
+class AuthCheckRequested extends AuthEvent {
+  const AuthCheckRequested();
+}
 
 class AuthLoginRequested extends AuthEvent {
   final String email;
@@ -26,7 +28,9 @@ class AuthLoginRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
-class AuthLogoutRequested extends AuthEvent {}
+class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}
 
 // States
 abstract class AuthState extends Equatable {
@@ -36,9 +40,13 @@ abstract class AuthState extends Equatable {
   List<Object?> get props => [];
 }
 
-class AuthInitial extends AuthState {}
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
 
-class AuthLoading extends AuthState {}
+class AuthLoading extends AuthState {
+  const AuthLoading();
+}
 
 class AuthAuthenticated extends AuthState {
   final User user;
@@ -49,7 +57,9 @@ class AuthAuthenticated extends AuthState {
   List<Object?> get props => [user];
 }
 
-class AuthUnauthenticated extends AuthState {}
+class AuthUnauthenticated extends AuthState {
+  const AuthUnauthenticated();
+}
 
 class AuthFailure extends AuthState {
   final String message;
@@ -66,7 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthBloc({required AuthService authService})
       : _authService = authService,
-        super(AuthInitial()) {
+        super(const AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
@@ -76,14 +86,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       final isAuthenticated = await _authService.isAuthenticated();
       if (isAuthenticated) {
         // TODO: Get user data from service
-        emit(AuthUnauthenticated());
+        emit(const AuthUnauthenticated());
       } else {
-        emit(AuthUnauthenticated());
+        emit(const AuthUnauthenticated());
       }
     } catch (e) {
       emit(AuthFailure(e.toString()));
@@ -94,7 +104,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       final user = await _authService.login(event.email, event.password);
       if (user != null) {
@@ -111,10 +121,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
     try {
       await _authService.logout();
-      emit(AuthUnauthenticated());
+      emit(const AuthUnauthenticated());
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }

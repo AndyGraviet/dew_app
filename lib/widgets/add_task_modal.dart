@@ -118,9 +118,9 @@ class _AddTaskModalState extends State<AddTaskModal> {
       style: const TextStyle(color: AppTheme.white),
       decoration: InputDecoration(
         labelText: 'Task Title',
-        labelStyle: TextStyle(color: AppTheme.white.withOpacity(0.7)),
+        labelStyle: TextStyle(color: AppTheme.white.withValues(alpha: 0.7)),
         enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: AppTheme.white.withOpacity(0.5)),
+          borderSide: BorderSide(color: AppTheme.white.withValues(alpha: 0.5)),
         ),
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: AppTheme.white),
@@ -145,7 +145,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
       children: [
         Text(
           'Due Date',
-          style: TextStyle(color: AppTheme.white.withOpacity(0.7)),
+          style: TextStyle(color: AppTheme.white.withValues(alpha: 0.7)),
         ),
         const SizedBox(height: 10),
         GestureDetector(
@@ -153,7 +153,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             decoration: BoxDecoration(
-              border: Border.all(color: AppTheme.white.withOpacity(0.5)),
+              border: Border.all(color: AppTheme.white.withValues(alpha: 0.5)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

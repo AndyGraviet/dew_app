@@ -43,25 +43,20 @@ void main() async {
   
   // Initialize Supabase
   try {
-    print('🔧 Initializing Supabase...');
-    print('🔧 URL: ${AppConfig.supabaseUrl}');
-    print('🔧 Key length: ${AppConfig.supabaseAnonKey.length}');
-    print('🔧 Key starts with: ${AppConfig.supabaseAnonKey.substring(0, 20)}...');
-    
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
       anonKey: AppConfig.supabaseAnonKey,
     );
-    print('✅ Supabase initialized successfully');
   } catch (e) {
-    print('❌ Failed to initialize Supabase: $e');
+    // Supabase initialization failed - handle gracefully
+    debugPrint('Failed to initialize Supabase: $e');
   }
 
   // Initialize auto-updater
   try {
     await AutoUpdateService().initialize();
   } catch (e) {
-    print('❌ Failed to initialize auto-updater: $e');
+    debugPrint('Failed to initialize auto-updater: $e');
   }
   
   await WindowManipulator.initialize();
@@ -165,15 +160,15 @@ class _DewAppState extends State<DewApp> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppTheme.primaryBlue.withOpacity(0.08),
-                              AppTheme.accentRed.withOpacity(0.08),
+                              AppTheme.primaryBlue.withValues(alpha: 0.08),
+                              AppTheme.accentRed.withValues(alpha: 0.08),
                             ],
                           ),
                         ),
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
                           child: Container(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                           ),
                         ),
                       ),

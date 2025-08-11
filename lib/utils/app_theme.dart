@@ -44,11 +44,9 @@ class AppTheme {
       primary: primaryBlue,
       secondary: accentRed,
       surface: cardBackground,
-      background: lightGrey,
       onPrimary: white,
       onSecondary: white,
       onSurface: darkText,
-      onBackground: darkText,
     ),
     textTheme: _textTheme,
     cardTheme: CardThemeData(

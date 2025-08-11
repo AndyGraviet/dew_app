@@ -17,7 +17,7 @@ class TimerSessionService {
           .from('timer_sessions')
           .select()
           .eq('user_id', _supabase.auth.currentUser!.id)
-          .in_('status', ['running', 'paused'])
+          .inFilter('status', ['running', 'paused'])
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();
@@ -262,13 +262,13 @@ class TimerSessionService {
 
       final response = await _supabase
           .from('timer_sessions')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('user_id', userId)
           .eq('status', TimerSessionStatus.completed.value)
           .gte('completed_at', startOfDay.toIso8601String())
           .lt('completed_at', endOfDay.toIso8601String());
 
-      return response.count ?? 0;
+      return response.length;
     } catch (error) {
       print('❌ Error fetching today\'s completed sessions count: $error');
       rethrow;

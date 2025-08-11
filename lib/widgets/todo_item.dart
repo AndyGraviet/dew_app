@@ -84,12 +84,12 @@ class _TodoItemWidgetState extends State<TodoItemWidget>
                     child: Container(
                       padding: const EdgeInsets.all(AppConstants.mdSpacing),
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.05),
+                        color: AppColors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(AppConstants.mdRadius),
                         border: Border.all(
                           color: widget.todo.isCompleted 
-                              ? AppColors.limeGreen.withOpacity(0.3)
-                              : AppColors.grey.withOpacity(0.2),
+                              ? AppColors.limeGreen.withValues(alpha: 0.3)
+                              : AppColors.grey.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -108,7 +108,7 @@ class _TodoItemWidgetState extends State<TodoItemWidget>
                               border: Border.all(
                                 color: widget.todo.isCompleted 
                                     ? AppColors.limeGreen
-                                    : AppColors.grey.withOpacity(0.5),
+                                    : AppColors.grey.withValues(alpha: 0.5),
                                 width: 2,
                               ),
                             ),
@@ -129,7 +129,7 @@ class _TodoItemWidgetState extends State<TodoItemWidget>
                               duration: const Duration(milliseconds: 200),
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: widget.todo.isCompleted 
-                                    ? AppColors.grey.withOpacity(0.6)
+                                    ? AppColors.grey.withValues(alpha: 0.6)
                                     : AppColors.black,
                                 decoration: widget.todo.isCompleted 
                                     ? TextDecoration.lineThrough
@@ -148,7 +148,7 @@ class _TodoItemWidgetState extends State<TodoItemWidget>
                               height: 8,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.electricBlue.withOpacity(0.6),
+                                color: AppColors.electricBlue.withValues(alpha: 0.6),
                               ),
                             ),
                         ],
@@ -169,10 +169,10 @@ class _TodoItemWidgetState extends State<TodoItemWidget>
       margin: const EdgeInsets.only(bottom: AppConstants.smSpacing),
       padding: const EdgeInsets.symmetric(horizontal: AppConstants.lgSpacing),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
+        color: AppColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppConstants.mdRadius),
         border: Border.all(
-          color: AppColors.error.withOpacity(0.3),
+          color: AppColors.error.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
