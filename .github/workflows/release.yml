@@ -87,10 +87,15 @@ jobs:
           echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
 
       - name: Update pubspec.yaml version
+        shell: bash
         run: |
           VERSION_NUMBER=${{ steps.get_version.outputs.version_number }}
-          sed -i.bak "s/^version: .*/version: ${VERSION_NUMBER}+${GITHUB_RUN_NUMBER}/" pubspec.yaml
-          rm pubspec.yaml.bak
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            sed -i "s/^version: .*/version: ${VERSION_NUMBER}+${GITHUB_RUN_NUMBER}/" pubspec.yaml
+          else
+            sed -i.bak "s/^version: .*/version: ${VERSION_NUMBER}+${GITHUB_RUN_NUMBER}/" pubspec.yaml
+            rm -f pubspec.yaml.bak
+          fi
 
       - name: Import Apple Developer certificates (macOS only)
         if: matrix.platform == 'macos'
