@@ -140,18 +140,18 @@ class KudosService {
       // Get received kudos count
       final receivedResponse = await _supabase
           .from('kudos')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('to_user_id', targetUserId);
 
       // Get sent kudos count
       final sentResponse = await _supabase
           .from('kudos')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('from_user_id', targetUserId);
 
       return {
-        'received': receivedResponse.count ?? 0,
-        'sent': sentResponse.count ?? 0,
+        'received': receivedResponse.length,
+        'sent': sentResponse.length,
       };
     } catch (error) {
       print('❌ Error fetching kudos stats: $error');

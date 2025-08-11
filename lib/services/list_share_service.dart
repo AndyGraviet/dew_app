@@ -263,18 +263,18 @@ class ListShareService {
       // Count lists I've shared
       final sharedByMeResponse = await _supabase
           .from('list_shares')
-          .select('todo_list_id', count: CountOption.exact)
+          .select('todo_list_id')
           .eq('todo_lists.user_id', userId);
 
       // Count lists shared with me
       final sharedWithMeResponse = await _supabase
           .from('list_shares')
-          .select('id', count: CountOption.exact)
+          .select('id')
           .eq('shared_with_user_id', userId);
 
       return {
-        'shared_by_me': sharedByMeResponse.count ?? 0,
-        'shared_with_me': sharedWithMeResponse.count ?? 0,
+        'shared_by_me': sharedByMeResponse.length,
+        'shared_with_me': sharedWithMeResponse.length,
       };
     } catch (error) {
       print('❌ Error fetching share stats: $error');
