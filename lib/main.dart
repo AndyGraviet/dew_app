@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
+import 'dart:io' show Platform;
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -12,6 +13,7 @@ import 'screens/login_screen.dart';
 import 'services/supabase_auth_service.dart';
 import 'services/auto_update_service.dart';
 import 'services/deep_link_service.dart';
+import 'services/tray_service.dart';
 import 'config/app_config.dart';
 
 void main() async {
@@ -115,6 +117,7 @@ class _DewAppState extends State<DewApp> {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
   final _authService = SupabaseAuthService();
+  final _trayService = TrayService();
   
   @override
   void initState() {
@@ -145,6 +148,7 @@ class _DewAppState extends State<DewApp> {
   @override
   void dispose() {
     hotKeyManager.unregisterAll();
+    _trayService.dispose();
     super.dispose();
   }
 
@@ -197,7 +201,10 @@ class _DewAppState extends State<DewApp> {
             
             final session = snapshot.data?.session;
             if (session != null) {
-              return HomeScreen(key: homeScreenKey);
+              return HomeScreen(
+                key: homeScreenKey,
+                trayService: _trayService,
+              );
             }
             
             return const LoginScreen();

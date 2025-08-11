@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'dart:ui';
+import 'dart:io' show Platform;
+import 'package:window_manager/window_manager.dart';
 import '../models/todo_list_model.dart';
 import '../models/task_model.dart';
 import '../services/todo_list_service.dart';
@@ -12,6 +14,7 @@ import '../utils/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/pomodoro_timer.dart';
 import '../widgets/glass_card.dart';
+import '../services/tray_service.dart';
 import 'login_screen.dart';
 import 'timer_templates_screen.dart';
 import 'todo_list_detail_screen.dart';
@@ -21,7 +24,9 @@ class AddListIntent extends Intent {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final TrayService? trayService;
+  
+  const HomeScreen({super.key, this.trayService});
 
   @override
   State<HomeScreen> createState() => HomeScreenState();
@@ -48,6 +53,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   
   // Timer controller for control
   final PomodoroTimerController _timerController = PomodoroTimerController();
+  
+  // Platform channel for native menu bar
+  static const platform = MethodChannel('dev.flutter.timer/status');
 
   @override
   void initState() {
@@ -59,6 +67,78 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _todoLists = [];
     _tabController = TabController(length: 0, vsync: this);
     _ensureUserRecordAndLoadData();
+    _initializeTrayService();
+    _initializePlatformChannel();
+  }
+
+  Future<void> _initializeTrayService() async {
+    if (widget.trayService != null) {
+      // Delay initialization to ensure window is ready
+      await Future.delayed(const Duration(milliseconds: 500));
+      await widget.trayService!.initialize(_timerController);
+      
+      // Initial update to show current timer state
+      await _updateTrayService();
+    }
+  }
+
+  Future<void> _initializePlatformChannel() async {
+    if (!Platform.isMacOS) return;
+    
+    // Set up method handler for commands from native
+    platform.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'togglePlayPause':
+          _timerController.togglePlayPause();
+          break;
+        case 'resetTimer':
+          // Show window to handle reset (requires UI interaction)
+          await _showWindow();
+          break;
+        case 'toggleWindow':
+          await _toggleWindow();
+          break;
+        default:
+          throw PlatformException(
+            code: 'Unimplemented',
+            details: 'Method ${call.method} not implemented',
+          );
+      }
+    });
+    
+    // Send initial timer state
+    await _updateNativeMenuBar();
+  }
+
+  Future<void> _showWindow() async {
+    await windowManager.show();
+    await windowManager.focus();
+  }
+
+  Future<void> _toggleWindow() async {
+    if (await windowManager.isVisible()) {
+      await windowManager.hide();
+    } else {
+      await windowManager.show();
+      await windowManager.focus();
+    }
+  }
+
+  Future<void> _updateNativeMenuBar() async {
+    if (!Platform.isMacOS) return;
+    
+    try {
+      final stateString = _timerController.currentState.toString().split('.').last;
+      await platform.invokeMethod('updateTimer', {
+        'time': _timerController.timeLeft,
+        'isRunning': _timerController.isRunning,
+        'state': stateString,
+        'sessions': _timerController.completedSessions,
+        'template': _timerController.templateName,
+      });
+    } catch (e) {
+      debugPrint('Failed to update native menu bar: $e');
+    }
   }
 
   Future<void> _ensureUserRecordAndLoadData() async {
@@ -908,55 +988,26 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(width: 8),
           
-          // Session info and controls
+          // Session info only (no controls in minimized state)
           Expanded(
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Session progress
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _timerController.templateName,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        '${_timerCompletedSessions} sessions completed',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.white.withOpacity(0.6),
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
+                Text(
+                  _timerController.templateName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
                   ),
                 ),
-                
-                // Compact play/pause button
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _toggleTimer,
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: AppTheme.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(
-                        _timerIsRunning ? Icons.pause : Icons.play_arrow,
-                        color: AppTheme.white,
-                        size: 16,
-                      ),
-                    ),
+                const SizedBox(height: 1),
+                Text(
+                  '${_timerCompletedSessions} sessions completed',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppTheme.white.withOpacity(0.6),
+                    fontSize: 10,
                   ),
                 ),
               ],
@@ -978,6 +1029,20 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // This will be called by the timer widget to update our local state
     if (mounted) {
       setState(() {});
+      _updateTrayService();
+      _updateNativeMenuBar();
+    }
+  }
+
+  Future<void> _updateTrayService() async {
+    if (widget.trayService != null) {
+      await widget.trayService!.updateTimerState(
+        timeLeft: _timerController.timeLeft,
+        isRunning: _timerController.isRunning,
+        completedSessions: _timerController.completedSessions,
+        templateName: _timerController.templateName,
+        currentState: _timerController.currentState,
+      );
     }
   }
 
@@ -988,6 +1053,10 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _timerIsRunning = isRunning;
         _timerCompletedSessions = completedSessions;
       });
+      
+      // Update tray service with current timer state
+      _updateTrayService();
+      _updateNativeMenuBar();
     }
   }
 
@@ -1031,22 +1100,24 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Settings button (subtle)
-                    IconButton(
-                      onPressed: _openTimerSettings,
-                      icon: Icon(
-                        Icons.settings,
-                        color: AppTheme.white.withOpacity(0.6),
-                        size: 18,
+                    // Settings button (only visible when expanded)
+                    if (!_isTimerMinimized) ...[
+                      IconButton(
+                        onPressed: _openTimerSettings,
+                        icon: Icon(
+                          Icons.settings,
+                          color: AppTheme.white.withOpacity(0.6),
+                          size: 18,
+                        ),
+                        tooltip: 'Timer Settings',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
                       ),
-                      tooltip: 'Timer Settings',
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
+                      const SizedBox(width: 4),
+                    ],
                     // Minimize/maximize button
                     IconButton(
                       onPressed: () {
