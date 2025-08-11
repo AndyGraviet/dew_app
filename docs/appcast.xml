@@ -1,0 +1,68 @@
+---
+layout: none
+---
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Dew App</title>
+        <description>Productivity Reimagined - Updates for Dew App</description>
+        <language>en</language>
+        <link>{{ site.url }}{{ site.baseurl }}</link>
+        {% assign latest_release = site.github.releases | first %}
+        {% if latest_release %}
+        <item>
+            <title>Dew {{ latest_release.tag_name }}</title>
+            <description><![CDATA[
+                <h3>What's New in {{ latest_release.tag_name }}</h3>
+                {{ latest_release.body | markdownify }}
+                
+                <p><strong>System Requirements:</strong></p>
+                <ul>
+                    <li>macOS: macOS 10.15 or later</li>
+                    <li>Windows: Windows 10 or later</li>
+                    <li>Linux: Ubuntu 20.04 or equivalent</li>
+                </ul>
+                
+                <p><em>This update includes the latest features and improvements. The app will update automatically.</em></p>
+            ]]></description>
+            <pubDate>{{ latest_release.published_at | date_to_rfc822 }}</pubDate>
+            <sparkle:version>{{ latest_release.tag_name | remove: 'v' }}</sparkle:version>
+            <sparkle:shortVersionString>{{ latest_release.tag_name | remove: 'v' }}</sparkle:shortVersionString>
+            
+            {% comment %} macOS Intel DMG {% endcomment %}
+            {% for asset in latest_release.assets %}
+                {% if asset.name contains 'macos-intel.dmg' %}
+                    <enclosure
+                        url="{{ asset.browser_download_url }}"
+                        length="{{ asset.size }}"
+                        type="application/octet-stream"
+                        sparkle:os="macos"
+                        sparkle:installerArguments="/Applications"
+                        sparkle:edSignature="[SIGNATURE_WILL_BE_ADDED_BY_GITHUB_ACTIONS]" />
+                {% endif %}
+            {% endfor %}
+            
+            {% comment %} macOS Apple Silicon DMG {% endcomment %}
+            {% for asset in latest_release.assets %}
+                {% if asset.name contains 'macos-apple-silicon.dmg' %}
+                    <enclosure
+                        url="{{ asset.browser_download_url }}"
+                        length="{{ asset.size }}"
+                        type="application/octet-stream"
+                        sparkle:os="macos"
+                        sparkle:installerArguments="/Applications"
+                        sparkle:edSignature="[SIGNATURE_WILL_BE_ADDED_BY_GITHUB_ACTIONS]" />
+                {% endif %}
+            {% endfor %}
+        </item>
+        {% endif %}
+        
+        {% comment %}
+        Note: This template will be enhanced by GitHub Actions to:
+        1. Fetch actual release data from GitHub API
+        2. Add proper Sparkle signatures for security
+        3. Include download counts and statistics
+        4. Support multiple release versions if needed
+        {% endcomment %}
+    </channel>
+</rss>

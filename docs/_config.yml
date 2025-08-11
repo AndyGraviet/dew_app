@@ -1,0 +1,31 @@
+title: Dew - Productivity Reimagined
+description: A beautiful, minimalist productivity app that helps you stay focused and organized.
+
+baseurl: "/dew_app"
+url: "https://AndyGraviet.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# GitHub API settings
+github:
+  repository_nwo: AndyGraviet/dew_app
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - README.md

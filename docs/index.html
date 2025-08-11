@@ -1,0 +1,197 @@
+---
+layout: default
+title: "Dew - Productivity Reimagined"
+description: "A beautiful, minimalist productivity app that helps you stay focused and organized. Built with Flutter, featuring auto-updates and cross-platform support."
+---
+
+<section class="hero">
+    <div class="container">
+        <h1>Dew</h1>
+        <p>A beautiful, minimalist productivity app that helps you stay focused and organized. Create tasks, manage lists, and track your progress with elegant simplicity.</p>
+        
+        <div class="platform-detection">
+            <span id="detected-platform" class="detected-platform">Detecting your platform...</span>
+        </div>
+    </div>
+</section>
+
+<section id="download" class="download">
+    <div class="container">
+        <h2>Download Dew <span class="version-number">v1.0.0</span></h2>
+        
+        <div class="download-buttons">
+            <a href="#" id="download-macos-intel" class="download-btn">
+                <div class="download-icon">🍎</div>
+                <div class="download-info">
+                    <strong>macOS (Intel)</strong>
+                    <small>macOS 10.15 or later</small>
+                </div>
+            </a>
+            
+            <a href="#" id="download-macos-silicon" class="download-btn">
+                <div class="download-icon">🍎</div>
+                <div class="download-info">
+                    <strong>macOS (Apple Silicon)</strong>
+                    <small>macOS 11.0 or later</small>
+                </div>
+            </a>
+            
+            <a href="#" id="download-windows" class="download-btn">
+                <div class="download-icon">🪟</div>
+                <div class="download-info">
+                    <strong>Windows</strong>
+                    <small>Windows 10 or later</small>
+                </div>
+            </a>
+            
+            <a href="#" id="download-linux" class="download-btn">
+                <div class="download-icon">🐧</div>
+                <div class="download-info">
+                    <strong>Linux</strong>
+                    <small>Ubuntu 20.04 or equivalent</small>
+                </div>
+            </a>
+        </div>
+        
+        <div class="requirements">
+            <h3>System Requirements</h3>
+            <div class="req-grid">
+                <div class="req-platform">
+                    <h4>macOS</h4>
+                    <p>macOS 10.15 Catalina or later<br>
+                    200 MB free storage<br>
+                    Intel or Apple Silicon processor</p>
+                </div>
+                <div class="req-platform">
+                    <h4>Windows</h4>
+                    <p>Windows 10 (64-bit) or later<br>
+                    200 MB free storage<br>
+                    x64 processor</p>
+                </div>
+                <div class="req-platform">
+                    <h4>Linux</h4>
+                    <p>Ubuntu 20.04 or equivalent<br>
+                    200 MB free storage<br>
+                    x64 processor, GTK 3.0+</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="features">
+    <div class="container">
+        <h2>Features</h2>
+        
+        <div class="feature-grid">
+            <div class="feature">
+                <div class="feature-icon">📝</div>
+                <h3>Task Management</h3>
+                <p>Create, organize, and track your tasks with an intuitive interface. Set priorities, due dates, and never miss important deadlines.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <h3>Focus Timer</h3>
+                <p>Built-in Pomodoro timer to help you stay focused and productive. Customize work and break intervals to match your rhythm.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Progress Tracking</h3>
+                <p>Visual insights into your productivity patterns. Track completed tasks, focus time, and celebrate your achievements.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🤝</div>
+                <h3>Team Collaboration</h3>
+                <p>Share lists with friends and colleagues. Give kudos for completed tasks and stay motivated together.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <h3>Auto-Updates</h3>
+                <p>Always stay up-to-date with the latest features and improvements. Updates are delivered seamlessly in the background.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🌟</div>
+                <h3>Beautiful Design</h3>
+                <p>Crafted with attention to detail. Glass morphism design that adapts to your system's appearance preferences.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="support" class="features">
+    <div class="container">
+        <h2>Support & Documentation</h2>
+        
+        <div class="feature-grid">
+            <div class="feature">
+                <div class="feature-icon">📚</div>
+                <h3>Getting Started</h3>
+                <p>New to Dew? Check out our comprehensive getting started guide to make the most of your productivity journey.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🐛</div>
+                <h3>Report Issues</h3>
+                <p>Found a bug or have a feature request? Let us know on GitHub and we'll address it in the next update.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <h3>Community</h3>
+                <p>Join our growing community of productive individuals. Share tips, tricks, and stay motivated together.</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="https://github.com/AndyGraviet/dew_app" class="download-btn" style="display: inline-flex; margin-top: 2rem;">
+                <div class="download-icon">⭐</div>
+                <div class="download-info">
+                    <strong>Star on GitHub</strong>
+                    <small>Open source and free</small>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+.update-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+    max-width: 350px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.update-content button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>

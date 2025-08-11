@@ -1,0 +1,323 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-and-release:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macos
+            arch: x64
+            build-args: --release
+            artifact-name: dew_app-macos-x64
+            artifact-path: build/macos/Build/Products/Release/
+          - os: macos-latest
+            platform: macos  
+            arch: arm64
+            build-args: --release
+            artifact-name: dew_app-macos-arm64
+            artifact-path: build/macos/Build/Products/Release/
+          - os: windows-latest
+            platform: windows
+            arch: x64
+            build-args: --release
+            artifact-name: dew_app-windows-x64
+            artifact-path: build/windows/x64/runner/Release/
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            build-args: --release
+            artifact-name: dew_app-linux-x64
+            artifact-path: build/linux/x64/release/bundle/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Set up Java (for Android, if needed)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - name: Enable platform
+        run: flutter config --enable-${{ matrix.platform }}-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Get version from tag
+        id: get_version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION_NUMBER=${{ steps.get_version.outputs.version_number }}
+          sed -i.bak "s/^version: .*/version: ${VERSION_NUMBER}+${GITHUB_RUN_NUMBER}/" pubspec.yaml
+          rm pubspec.yaml.bak
+
+      - name: Import Apple Developer certificates (macOS only)
+        if: matrix.platform == 'macos'
+        env:
+          APPLE_CERT_DATA: ${{ secrets.APPLE_CERT_DATA }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+
+          # Import certificate
+          echo "$APPLE_CERT_DATA" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+      - name: Build Flutter app
+        run: |
+          if [ "${{ matrix.platform }}" == "macos" ]; then
+            if [ "${{ matrix.arch }}" == "arm64" ]; then
+              flutter build macos ${{ matrix.build-args }} --target-platform darwin-arm64
+            else
+              flutter build macos ${{ matrix.build-args }} --target-platform darwin-x64
+            fi
+          else
+            flutter build ${{ matrix.platform }} ${{ matrix.build-args }}
+          fi
+
+      - name: Sign macOS app
+        if: matrix.platform == 'macos'
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          APP_PATH="${{ matrix.artifact-path }}dew_app.app"
+          codesign --force --options runtime --deep --sign "$APPLE_SIGNING_IDENTITY" "$APP_PATH"
+          codesign --verify --verbose "$APP_PATH"
+
+      - name: Create macOS DMG
+        if: matrix.platform == 'macos'
+        run: |
+          APP_PATH="${{ matrix.artifact-path }}dew_app.app"
+          DMG_PATH="${{ matrix.artifact-path }}dew_app-${{ matrix.arch }}.dmg"
+          
+          # Create a temporary directory for DMG contents
+          mkdir -p dmg-temp
+          cp -R "$APP_PATH" dmg-temp/
+          
+          # Create DMG
+          hdiutil create -volname "Dew" -srcfolder dmg-temp -ov -format UDZO "$DMG_PATH"
+          
+          # Clean up
+          rm -rf dmg-temp
+
+      - name: Sign macOS DMG
+        if: matrix.platform == 'macos'
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          DMG_PATH="${{ matrix.artifact-path }}dew_app-${{ matrix.arch }}.dmg"
+          codesign --force --sign "$APPLE_SIGNING_IDENTITY" "$DMG_PATH"
+
+      - name: Notarize macOS DMG
+        if: matrix.platform == 'macos'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          DMG_PATH="${{ matrix.artifact-path }}dew_app-${{ matrix.arch }}.dmg"
+          
+          # Submit for notarization
+          xcrun notarytool submit "$DMG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          
+          # Staple the notarization
+          xcrun stapler staple "$DMG_PATH"
+
+      - name: Create Windows installer
+        if: matrix.platform == 'windows'
+        run: |
+          # Create a simple zip for now - you can enhance this with NSIS or WiX later
+          cd ${{ matrix.artifact-path }}
+          7z a ../../../dew_app-windows-x64.zip *
+
+      - name: Create Linux tarball
+        if: matrix.platform == 'linux'
+        run: |
+          cd ${{ matrix.artifact-path }}
+          tar -czf ../../../dew_app-linux-x64.tar.gz *
+
+      - name: Generate release signature (macOS only)
+        if: matrix.platform == 'macos'
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          DMG_PATH="${{ matrix.artifact-path }}dew_app-${{ matrix.arch }}.dmg"
+          
+          # Save private key to temporary file
+          echo "$SPARKLE_PRIVATE_KEY" > temp_private_key.pem
+          
+          # Generate signature
+          SIGNATURE=$(openssl dgst -sha256 -sign temp_private_key.pem "$DMG_PATH" | base64 | tr -d '\n')
+          echo "SPARKLE_SIGNATURE=$SIGNATURE" >> $GITHUB_ENV
+          
+          # Clean up
+          rm temp_private_key.pem
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: |
+            ${{ matrix.platform == 'macos' && format('{0}*.dmg', matrix.artifact-path) || '' }}
+            ${{ matrix.platform == 'windows' && 'dew_app-windows-x64.zip' || '' }}
+            ${{ matrix.platform == 'linux' && 'dew_app-linux-x64.tar.gz' || '' }}
+
+  create-release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Dew ${{ steps.get_version.outputs.version }}
+          body: |
+            ## What's New in ${{ steps.get_version.outputs.version }}
+
+            ### Features
+            - Auto-update functionality
+            - Cross-platform support
+            - Enhanced productivity features
+
+            ### Installation
+            - **macOS**: Download the DMG file for your architecture (Intel or Apple Silicon)
+            - **Windows**: Download and extract the ZIP file
+            - **Linux**: Download and extract the tarball
+
+            ### System Requirements
+            - **macOS**: macOS 10.15 or later
+            - **Windows**: Windows 10 or later
+            - **Linux**: Ubuntu 20.04 or equivalent
+
+            ---
+            
+            Built with Flutter • Auto-updates enabled
+          draft: false
+          prerelease: false
+
+      - name: Upload macOS Intel Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/dew_app-macos-x64/dew_app-x64.dmg
+          asset_name: dew_app-macos-intel.dmg
+          asset_content_type: application/x-apple-diskimage
+
+      - name: Upload macOS Apple Silicon Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/dew_app-macos-arm64/dew_app-arm64.dmg
+          asset_name: dew_app-macos-apple-silicon.dmg
+          asset_content_type: application/x-apple-diskimage
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/dew_app-windows-x64/dew_app-windows-x64.zip
+          asset_name: dew_app-windows-x64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Linux Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/dew_app-linux-x64/dew_app-linux-x64.tar.gz
+          asset_name: dew_app-linux-x64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Trigger website update
+        run: |
+          # This will trigger the GitHub Pages rebuild to update appcast.xml
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds"

@@ -1,0 +1,11 @@
+// Rename this file to app_config.dart and fill in your actual values
+
+class AppConfig {
+  // Supabase Configuration
+  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  
+  // Google Sign-In Configuration
+  // This is your Web Client ID from Google Cloud Console
+  static const String googleWebClientId = 'YOUR_GOOGLE_WEB_CLIENT_ID';
+}
