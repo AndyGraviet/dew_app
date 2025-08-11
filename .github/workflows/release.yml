@@ -175,8 +175,12 @@ jobs:
         shell: bash
         run: |
           # Create a simple zip for now - you can enhance this with NSIS or WiX later
-          cd ${{ matrix.artifact-path }}
-          7z a dew_app-windows-x64.zip *
+          mkdir -p windows-release
+          cp -r ${{ matrix.artifact-path }}* windows-release/
+          cd windows-release
+          7z a ../dew_app-windows-x64.zip *
+          cd ..
+          ls -la dew_app-windows-x64.zip
 
 
       - name: Generate release signature (macOS only)
@@ -202,7 +206,7 @@ jobs:
           name: ${{ matrix.artifact-name }}
           path: |
             ${{ matrix.platform == 'macos' && format('{0}*.dmg', matrix.artifact-path) || '' }}
-            ${{ matrix.platform == 'windows' && format('{0}dew_app-windows-x64.zip', matrix.artifact-path) || '' }}
+            ${{ matrix.platform == 'windows' && 'dew_app-windows-x64.zip' || '' }}
 
   create-release:
     needs: build-and-release
@@ -285,7 +289,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/dew_app-windows-x64/build/windows/x64/runner/Release/dew_app-windows-x64.zip
+          asset_path: artifacts/dew_app-windows-x64/dew_app-windows-x64.zip
           asset_name: dew_app-windows-x64.zip
           asset_content_type: application/zip
 
