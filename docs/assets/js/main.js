@@ -86,8 +86,7 @@
     // Update download links with actual release URLs
     function updateDownloadLinks(assets) {
         const linkMap = {
-            'download-macos-intel': 'dew_app-macos-universal.dmg',
-            'download-macos-silicon': 'dew_app-macos-universal.dmg',
+            'download-macos-universal': 'dew_app-macos-universal.dmg',
             'download-windows': 'dew_app-windows-x64.zip'
         };
 
@@ -124,13 +123,10 @@
         let recommendedId = '';
         switch (platform) {
             case 'macos':
-                recommendedId = arch === 'intel' ? 'download-macos-intel' : 'download-macos-silicon';
+                recommendedId = 'download-macos-universal';
                 break;
             case 'windows':
                 recommendedId = 'download-windows';
-                break;
-            case 'linux':
-                recommendedId = 'download-linux';
                 break;
         }
 
