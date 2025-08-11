@@ -85,6 +85,10 @@ class PomodoroTimerController {
     _state?._startPauseTimer();
   }
   
+  void applyTemplate(TimerTemplate template) {
+    _state?._applyTemplate(template);
+  }
+  
   bool get isRunning => _state?._isRunning ?? false;
   int get timeLeft => _state?._timeLeft ?? (25 * 60);
   int get completedSessions => _state?._completedSessions ?? 0;

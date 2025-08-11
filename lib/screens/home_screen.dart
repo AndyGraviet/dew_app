@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import 'package:window_manager/window_manager.dart';
 import '../models/todo_list_model.dart';
 import '../models/task_model.dart';
+import '../models/timer_template_model.dart';
 import '../services/todo_list_service.dart';
 import '../services/task_service.dart';
 import '../services/supabase_auth_service.dart';
@@ -214,9 +215,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     );
     
-    // Update timer state if a template was selected
-    if (result != null) {
-      _updateTimerState();
+    // Apply the selected template if one was chosen
+    if (result != null && result is TimerTemplate) {
+      _timerController.applyTemplate(result);
     }
   }
 

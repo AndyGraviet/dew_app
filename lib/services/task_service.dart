@@ -36,19 +36,23 @@ class TaskService {
     DateTime? dueDate,
   }) async {
     try {
-      // Get current max position
-      final positionResponse = await _supabase
+      // First, get all existing tasks to increment their positions
+      final existingTasks = await _supabase
           .from('tasks')
-          .select('position')
+          .select('id, position')
           .eq('todo_list_id', todoListId)
           .isFilter('deleted_at', null)
-          .order('position', ascending: false)
-          .limit(1);
+          .order('position');
 
-      final maxPosition = positionResponse.isNotEmpty 
-          ? (positionResponse.first['position'] as int?) ?? 0
-          : 0;
+      // Increment positions of existing tasks
+      for (final taskData in existingTasks) {
+        await _supabase
+            .from('tasks')
+            .update({'position': (taskData['position'] as int) + 1})
+            .eq('id', taskData['id']);
+      }
 
+      // Insert new task at position 0 (top of list)
       final response = await _supabase
           .from('tasks')
           .insert({
@@ -57,7 +61,7 @@ class TaskService {
             'description': description,
             'priority': priority.name,
             'due_date': dueDate?.toIso8601String(),
-            'position': maxPosition + 1,
+            'position': 0,
           })
           .select()
           .single();
