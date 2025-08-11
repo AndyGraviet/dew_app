@@ -8,7 +8,13 @@ class AppConfig {
 
   // Initialize environment variables
   static Future<void> initialize() async {
-    await dotenv.load(fileName: '.env');
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      // In CI/CD builds, the .env file won't exist
+      // The generate_app_config.dart script will create a static version
+      print('Note: .env file not found, using compiled configuration');
+    }
   }
 
   // Supabase Configuration
