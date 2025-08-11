@@ -28,6 +28,12 @@ class SupabaseAuthService {
   // Ensure user record exists in database
   Future<void> _ensureUserRecord(User supabaseUser) async {
     try {
+      // Only create user record if email is confirmed
+      if (supabaseUser.emailConfirmedAt == null) {
+        print('⏳ Skipping user record creation - email not confirmed yet');
+        return;
+      }
+
       final email = supabaseUser.email ?? '';
       final username = supabaseUser.userMetadata?['username'] ?? 
                       email.split('@').first;
@@ -123,10 +129,21 @@ class SupabaseAuthService {
       );
       
       print('✅ Email sign-up initiated: ${response.user?.email}');
-      print('📧 Email confirmation required');
       
-      // Return null to indicate that email confirmation is needed
-      // The app will show the EmailPendingScreen
+      if (response.user != null) {
+        print('📧 User created, email confirmation required: ${response.user!.emailConfirmedAt == null}');
+        
+        // If user is created but email not confirmed, return null to show EmailPendingScreen
+        if (response.user!.emailConfirmedAt == null) {
+          print('⏳ Waiting for email confirmation');
+          return null;
+        }
+        
+        // If email is already confirmed (shouldn't happen with new signups), create user record
+        await _ensureUserRecord(response.user!);
+        return _convertUser(response.user);
+      }
+      
       return null;
     } catch (error) {
       print('❌ Error signing up with email: $error');
@@ -209,6 +226,23 @@ class SupabaseAuthService {
     final user = currentUser;
     if (user != null) {
       await _ensureUserRecord(user);
+    }
+  }
+
+  // Force refresh the current user session and ensure user record exists
+  Future<void> refreshUserAndEnsureRecord() async {
+    try {
+      // Refresh the session to get updated user info
+      await _supabase.auth.refreshSession();
+      
+      // Get the updated user
+      final user = currentUser;
+      if (user != null && user.emailConfirmedAt != null) {
+        print('✅ User email confirmed, creating user record');
+        await _ensureUserRecord(user);
+      }
+    } catch (error) {
+      print('❌ Error refreshing user session: $error');
     }
   }
 

@@ -61,9 +61,13 @@ class _EmailPendingScreenState extends State<EmailPendingScreen>
     });
   }
   
-  void _handleAuthCallback(Uri uri) {
+  void _handleAuthCallback(Uri uri) async {
     if (mounted) {
       debugPrint('🎉 Processing email confirmation...');
+      
+      // Refresh the user session and ensure user record is created
+      await _authService.refreshUserAndEnsureRecord();
+      
       // The auth state should update automatically, but we can show immediate feedback
       _showSuccessAndNavigate();
     }
