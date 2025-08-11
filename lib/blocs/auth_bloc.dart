@@ -81,9 +81,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final isAuthenticated = await _authService.isAuthenticated();
       if (isAuthenticated) {
         // TODO: Get user data from service
-        emit(const AuthUnauthenticated());
+        emit(AuthUnauthenticated());
       } else {
-        emit(const AuthUnauthenticated());
+        emit(AuthUnauthenticated());
       }
     } catch (e) {
       emit(AuthFailure(e.toString()));
@@ -100,7 +100,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         emit(AuthAuthenticated(user));
       } else {
-        emit(const AuthFailure('Login failed'));
+        emit(AuthFailure('Login failed'));
       }
     } catch (e) {
       emit(AuthFailure(e.toString()));
@@ -114,7 +114,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _authService.logout();
-      emit(const AuthUnauthenticated());
+      emit(AuthUnauthenticated());
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
