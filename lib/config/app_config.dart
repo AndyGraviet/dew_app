@@ -1,12 +1,62 @@
-// Configuration file for the app
-// IMPORTANT: This file contains placeholder values for CI/CD builds
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+/// Configuration class that loads values from environment variables
+/// This prevents hardcoding sensitive information in the codebase
 class AppConfig {
+  // Private constructor to prevent instantiation
+  AppConfig._();
+
+  // Initialize environment variables
+  static Future<void> initialize() async {
+    await dotenv.load(fileName: '.env');
+  }
+
   // Supabase Configuration
-  static const String supabaseUrl = 'https://thsitslpyddlctxsywki.supabase.co';
-  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoc2l0c2xweWRkbGN0eHN5d2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NzEzOTQsImV4cCI6MjA2OTA0NzM5NH0.c1DkvnqD6Llv9zgu-3SGcDyC-KctAwb0DhYWMqoYcpE';
-  
+  static String get supabaseUrl {
+    final url = dotenv.env['SUPABASE_URL'];
+    if (url == null || url.isEmpty) {
+      throw Exception('SUPABASE_URL not found in environment variables');
+    }
+    return url;
+  }
+
+  static String get supabaseAnonKey {
+    final key = dotenv.env['SUPABASE_ANON_KEY'];
+    if (key == null || key.isEmpty) {
+      throw Exception('SUPABASE_ANON_KEY not found in environment variables');
+    }
+    return key;
+  }
+
   // Google Sign-In Configuration
-  static const String googleWebClientId = '1011903996076-pvsnufkfdvpdmgv20nh27v7l3cfo4j8f.apps.googleusercontent.com';
-  static const String googleIosClientId = '1011903996076-gjhg7cebfk1235102id7700u79ptdql2.apps.googleusercontent.com';
+  static String get googleWebClientId {
+    final id = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+    if (id == null || id.isEmpty) {
+      throw Exception('GOOGLE_WEB_CLIENT_ID not found in environment variables');
+    }
+    return id;
+  }
+
+  static String get googleIosClientId {
+    final id = dotenv.env['GOOGLE_IOS_CLIENT_ID'];
+    if (id == null || id.isEmpty) {
+      throw Exception('GOOGLE_IOS_CLIENT_ID not found in environment variables');
+    }
+    return id;
+  }
+
+  // Environment type
+  static String get environment {
+    return dotenv.env['ENVIRONMENT'] ?? 'development';
+  }
+
+  // Check if running in production
+  static bool get isProduction {
+    return environment == 'production';
+  }
+
+  // Check if running in development
+  static bool get isDevelopment {
+    return environment == 'development';
+  }
 }

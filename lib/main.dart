@@ -16,6 +16,9 @@ import 'config/app_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize environment variables
+  await AppConfig.initialize();
+  
   // Initialize window manager
   await windowManager.ensureInitialized();
   
