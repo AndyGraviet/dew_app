@@ -21,15 +21,9 @@ jobs:
         include:
           - os: macos-latest
             platform: macos
-            arch: x64
+            arch: universal
             build-args: --release
-            artifact-name: dew_app-macos-x64
-            artifact-path: build/macos/Build/Products/Release/
-          - os: macos-latest
-            platform: macos  
-            arch: arm64
-            build-args: --release
-            artifact-name: dew_app-macos-arm64
+            artifact-name: dew_app-macos-universal
             artifact-path: build/macos/Build/Products/Release/
           - os: windows-latest
             platform: windows
@@ -119,11 +113,7 @@ jobs:
       - name: Build Flutter app
         run: |
           if [ "${{ matrix.platform }}" == "macos" ]; then
-            if [ "${{ matrix.arch }}" == "arm64" ]; then
-              flutter build macos ${{ matrix.build-args }} --target-platform darwin-arm64
-            else
-              flutter build macos ${{ matrix.build-args }} --target-platform darwin-x64
-            fi
+            flutter build macos ${{ matrix.build-args }}
           else
             flutter build ${{ matrix.platform }} ${{ matrix.build-args }}
           fi

@@ -86,8 +86,8 @@
     // Update download links with actual release URLs
     function updateDownloadLinks(assets) {
         const linkMap = {
-            'download-macos-intel': 'dew_app-macos-intel.dmg',
-            'download-macos-silicon': 'dew_app-macos-apple-silicon.dmg',
+            'download-macos-intel': 'dew_app-macos-universal.dmg',
+            'download-macos-silicon': 'dew_app-macos-universal.dmg',
             'download-windows': 'dew_app-windows-x64.zip',
             'download-linux': 'dew_app-linux-x64.tar.gz'
         };
