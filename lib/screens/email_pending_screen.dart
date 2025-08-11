@@ -6,6 +6,7 @@ import '../utils/app_theme.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/custom_button.dart';
 import 'login_screen.dart';
+import 'home_screen.dart';
 
 class EmailPendingScreen extends StatefulWidget {
   final String email;
@@ -65,11 +66,25 @@ class _EmailPendingScreenState extends State<EmailPendingScreen>
     if (mounted) {
       debugPrint('🎉 Processing email confirmation...');
       
-      // Refresh the user session and ensure user record is created
-      await _authService.refreshUserAndEnsureRecord();
+      // Extract the authorization code from the deep link
+      final code = uri.queryParameters['code'];
       
-      // The auth state should update automatically, but we can show immediate feedback
-      _showSuccessAndNavigate();
+      if (code != null) {
+        try {
+          // Exchange the code for a session
+          await _authService.confirmEmailWithCode(code);
+          
+          // The auth state should update automatically, but we can show immediate feedback
+          _showSuccessAndNavigate();
+        } catch (e) {
+          debugPrint('❌ Error confirming email: $e');
+          setState(() {
+            _message = 'Error confirming email. Please try the link again.';
+          });
+        }
+      } else {
+        debugPrint('⚠️ No authorization code found in deep link: ${uri.toString()}');
+      }
     }
   }
   
@@ -79,8 +94,18 @@ class _EmailPendingScreenState extends State<EmailPendingScreen>
     });
     
     _fadeController.forward().then((_) {
-      // Navigate to home screen - the StreamBuilder in main.dart will handle this
-      // by detecting the confirmed user session
+      // Give a brief moment for success message, then navigate to authenticated state
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          debugPrint('🚀 Navigating to authenticated state after email confirmation');
+          
+          // Directly navigate to HomeScreen and clear the navigation stack
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (route) => false,
+          );
+        }
+      });
     });
   }
 

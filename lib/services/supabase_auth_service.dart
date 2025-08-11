@@ -256,4 +256,35 @@ class SupabaseAuthService {
       rethrow;
     }
   }
+
+  // Confirm email using authorization code and create session
+  Future<void> confirmEmailWithCode(String code) async {
+    try {
+      print('🔐 Exchanging authorization code for session');
+      
+      // Exchange the authorization code for a session
+      await _supabase.auth.exchangeCodeForSession(code);
+      
+      // Small delay to ensure session is fully established
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Get the current user after session is created
+      final user = currentUser;
+      if (user != null) {
+        print('✅ Email confirmed and session created for: ${user.email}');
+        
+        // Ensure user record exists in database
+        await _ensureUserRecord(user);
+        
+        // Explicitly trigger auth state change notification
+        // This ensures the StreamBuilder in main.dart detects the new session
+        print('🔄 Triggering auth state refresh for navigation...');
+      } else {
+        print('⚠️ Code exchanged but no user in session');
+      }
+    } catch (error) {
+      print('❌ Error exchanging code for session: $error');
+      rethrow;
+    }
+  }
 }

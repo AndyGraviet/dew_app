@@ -711,7 +711,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         },
         child: Focus(
-          autofocus: true,
+          autofocus: ModalRoute.of(context)?.isCurrent ?? false,
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: Stack(
