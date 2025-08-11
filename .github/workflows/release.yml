@@ -31,12 +31,6 @@ jobs:
             build-args: --release
             artifact-name: dew_app-windows-x64
             artifact-path: build/windows/x64/runner/Release/
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            build-args: --release
-            artifact-name: dew_app-linux-x64
-            artifact-path: build/linux/x64/release/bundle/
 
     steps:
       - name: Checkout repository
@@ -56,11 +50,6 @@ jobs:
           distribution: 'oracle'
           java-version: '17'
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'linux'
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ninja-build libgtk-3-dev
 
       - name: Enable platform
         run: flutter config --enable-${{ matrix.platform }}-desktop
@@ -183,11 +172,6 @@ jobs:
           cd ${{ matrix.artifact-path }}
           7z a ../../../dew_app-windows-x64.zip *
 
-      - name: Create Linux tarball
-        if: matrix.platform == 'linux'
-        run: |
-          cd ${{ matrix.artifact-path }}
-          tar -czf ../../../dew_app-linux-x64.tar.gz *
 
       - name: Generate release signature (macOS only)
         if: matrix.platform == 'macos'
@@ -256,14 +240,12 @@ jobs:
             - Enhanced productivity features
 
             ### Installation
-            - **macOS**: Download the DMG file for your architecture (Intel or Apple Silicon)
+            - **macOS**: Download the Universal DMG file (supports both Intel and Apple Silicon)
             - **Windows**: Download and extract the ZIP file
-            - **Linux**: Download and extract the tarball
 
             ### System Requirements
             - **macOS**: macOS 10.15 or later
             - **Windows**: Windows 10 or later
-            - **Linux**: Ubuntu 20.04 or equivalent
 
             ---
             
@@ -301,15 +283,6 @@ jobs:
           asset_name: dew_app-windows-x64.zip
           asset_content_type: application/zip
 
-      - name: Upload Linux Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/dew_app-linux-x64/dew_app-linux-x64.tar.gz
-          asset_name: dew_app-linux-x64.tar.gz
-          asset_content_type: application/gzip
 
       - name: Trigger website update
         run: |

@@ -88,8 +88,7 @@
         const linkMap = {
             'download-macos-intel': 'dew_app-macos-universal.dmg',
             'download-macos-silicon': 'dew_app-macos-universal.dmg',
-            'download-windows': 'dew_app-windows-x64.zip',
-            'download-linux': 'dew_app-linux-x64.tar.gz'
+            'download-windows': 'dew_app-windows-x64.zip'
         };
 
         Object.entries(linkMap).forEach(([elementId, fileName]) => {
