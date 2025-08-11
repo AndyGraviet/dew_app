@@ -11,6 +11,7 @@ import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/supabase_auth_service.dart';
 import 'services/auto_update_service.dart';
+import 'services/deep_link_service.dart';
 import 'config/app_config.dart';
 
 void main() async {
@@ -63,6 +64,13 @@ void main() async {
     await AutoUpdateService().initialize();
   } catch (e) {
     debugPrint('Failed to initialize auto-updater: $e');
+  }
+
+  // Initialize deep link service
+  try {
+    await DeepLinkService().initialize();
+  } catch (e) {
+    debugPrint('Failed to initialize deep link service: $e');
   }
   
   await WindowManipulator.initialize();

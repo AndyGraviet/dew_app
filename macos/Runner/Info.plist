@@ -38,6 +38,14 @@
 				<string>com.googleusercontent.apps.1011903996076-gjhg7cebfk1235102id7700u79ptdql2</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>dewapp.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dewapp</string>
+			</array>
+		</dict>
 	</array>
 	<key>SUPublicEDKey</key>
 	<string>MCowBQYDK2VwAyEAWsIm00DiY3c+gJSiSO93is7KSyodq1q3Od2C57S/NSo=</string>

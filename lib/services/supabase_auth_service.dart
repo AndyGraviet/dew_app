@@ -90,9 +90,13 @@ class SupabaseAuthService {
       
       print('✅ Email sign-in successful: ${response.user?.email}');
       
-      // Ensure user record exists in database
+      // Ensure user record exists in database (try even for unconfirmed users)
       if (response.user != null) {
-        await _ensureUserRecord(response.user!);
+        try {
+          await _ensureUserRecord(response.user!);
+        } catch (e) {
+          print('⚠️ Could not ensure user record: $e');
+        }
       }
       
       return _convertUser(response.user);
@@ -102,7 +106,7 @@ class SupabaseAuthService {
     }
   }
 
-  // Sign up with email and password
+  // Sign up with email and password - returns null to indicate pending confirmation
   Future<app_models.User?> signUpWithEmail(String email, String password, String name) async {
     try {
       print('🔄 Signing up with email: $email');
@@ -115,16 +119,15 @@ class SupabaseAuthService {
           'full_name': name,
           'username': email.split('@').first,
         },
+        emailRedirectTo: 'dewapp://auth/callback',
       );
       
-      print('✅ Email sign-up successful: ${response.user?.email}');
+      print('✅ Email sign-up initiated: ${response.user?.email}');
+      print('📧 Email confirmation required');
       
-      // Ensure user record exists in database
-      if (response.user != null) {
-        await _ensureUserRecord(response.user!);
-      }
-      
-      return _convertUser(response.user);
+      // Return null to indicate that email confirmation is needed
+      // The app will show the EmailPendingScreen
+      return null;
     } catch (error) {
       print('❌ Error signing up with email: $error');
       rethrow;

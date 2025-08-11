@@ -4,6 +4,7 @@ import '../services/supabase_auth_service.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/custom_button.dart';
 import 'home_screen.dart';
+import 'email_pending_screen.dart';
 import '../utils/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isSignUp = false;
   String? _errorMessage;
+  String? _successMessage;
 
   @override
   void dispose() {
@@ -35,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _successMessage = null;
     });
 
     try {
@@ -70,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _successMessage = null;
     });
 
     try {
@@ -85,20 +89,39 @@ class _LoginScreenState extends State<LoginScreen> {
             );
       
       if (user != null && mounted) {
+        // User signed in successfully
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+      } else if (_isSignUp && mounted) {
+        // Sign up initiated - show email pending screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => EmailPendingScreen(email: _emailController.text),
+          ),
+        );
       } else {
         setState(() {
-          _errorMessage = _isSignUp 
-              ? 'Failed to create account. Please try again.'
-              : 'Invalid email or password.';
+          _errorMessage = 'Invalid email or password.';
         });
       }
     } catch (e) {
       print('❌ Email auth error: $e');
       setState(() {
-        _errorMessage = 'Error: ${e.toString()}';
+        // Clean up error messages for better UX
+        String errorMsg = e.toString();
+        if (errorMsg.contains('Please check your email to confirm')) {
+          _errorMessage = '📧 Please check your email to confirm your account before signing in.';
+        } else if (errorMsg.contains('Please confirm your email')) {
+          _errorMessage = '⚠️ Please confirm your email first. Check your inbox for the confirmation link.';
+        } else if (errorMsg.contains('Invalid login credentials')) {
+          _errorMessage = '❌ Invalid email or password.';
+        } else if (errorMsg.contains('User already registered')) {
+          _errorMessage = '⚠️ This email is already registered. Please sign in instead.';
+        } else {
+          // Remove "Exception: " prefix if present
+          _errorMessage = errorMsg.replaceAll('Exception: ', '');
+        }
       });
     } finally {
       if (mounted) {
@@ -256,15 +279,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     
-                    if (_errorMessage != null) ...[ 
+                    if (_errorMessage != null || _successMessage != null) ...[ 
                       const SizedBox(height: 16),
-                      Text(
-                        _errorMessage!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                          fontSize: 14,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _successMessage != null 
+                              ? Colors.green.withOpacity(0.1)
+                              : Theme.of(context).colorScheme.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _successMessage != null
+                                ? Colors.green.withOpacity(0.3)
+                                : Theme.of(context).colorScheme.error.withOpacity(0.3),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
+                        child: Text(
+                          _successMessage ?? _errorMessage!,
+                          style: TextStyle(
+                            color: _successMessage != null
+                                ? Colors.green[700]
+                                : Theme.of(context).colorScheme.error,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                     
@@ -285,6 +324,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() {
                           _isSignUp = !_isSignUp;
                           _errorMessage = null;
+                          _successMessage = null;
                         });
                       },
                       child: Text(
