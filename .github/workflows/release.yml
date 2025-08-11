@@ -258,24 +258,14 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload macOS Intel Release Asset
+      - name: Upload macOS Universal Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/dew_app-macos-x64/dew_app-x64.dmg
-          asset_name: dew_app-macos-intel.dmg
-          asset_content_type: application/x-apple-diskimage
-
-      - name: Upload macOS Apple Silicon Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/dew_app-macos-arm64/dew_app-arm64.dmg
-          asset_name: dew_app-macos-apple-silicon.dmg
+          asset_path: artifacts/dew_app-macos-universal/dew_app-universal.dmg
+          asset_name: dew_app-macos-universal.dmg
           asset_content_type: application/x-apple-diskimage
 
       - name: Upload Windows Release Asset
