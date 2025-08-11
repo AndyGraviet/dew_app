@@ -176,7 +176,7 @@ jobs:
         run: |
           # Create a simple zip for now - you can enhance this with NSIS or WiX later
           cd ${{ matrix.artifact-path }}
-          7z a ./dew_app-windows-x64.zip *
+          7z a ../../../dew_app-windows-x64.zip *
 
 
       - name: Generate release signature (macOS only)
@@ -203,7 +203,6 @@ jobs:
           path: |
             ${{ matrix.platform == 'macos' && format('{0}*.dmg', matrix.artifact-path) || '' }}
             ${{ matrix.platform == 'windows' && 'dew_app-windows-x64.zip' || '' }}
-            ${{ matrix.platform == 'linux' && 'dew_app-linux-x64.tar.gz' || '' }}
 
   create-release:
     needs: build-and-release
