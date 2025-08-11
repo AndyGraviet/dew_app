@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/timer_template_model.dart';
 import '../services/timer_template_service.dart';
+import '../services/audio_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/constants.dart';
 import '../widgets/glass_card.dart';
@@ -15,14 +16,23 @@ class TimerTemplatesScreen extends StatefulWidget {
 
 class _TimerTemplatesScreenState extends State<TimerTemplatesScreen> {
   final _timerTemplateService = TimerTemplateService();
+  final _audioService = AudioService();
   List<TimerTemplate> _templates = [];
   bool _isLoading = true;
   String? _errorMessage;
+  double _currentVolume = 0.5;
 
   @override
   void initState() {
     super.initState();
     _loadTemplates();
+    _loadAudioSettings();
+  }
+
+  Future<void> _loadAudioSettings() async {
+    setState(() {
+      _currentVolume = _audioService.volume;
+    });
   }
 
   Future<void> _loadTemplates() async {
@@ -155,13 +165,136 @@ class _TimerTemplatesScreenState extends State<TimerTemplatesScreen> {
       onRefresh: _loadTemplates,
       child: ListView.builder(
         padding: const EdgeInsets.all(AppConstants.lgSpacing),
-        itemCount: _templates.length + 1, // +1 for create new card
+        itemCount: _templates.length + 2, // +1 for create new card, +1 for audio settings
         itemBuilder: (context, index) {
-          if (index == _templates.length) {
+          if (index == 0) {
+            return _buildAudioSettingsCard();
+          }
+          if (index == _templates.length + 1) {
             return _buildCreateNewCard();
           }
-          return _buildTemplateCard(_templates[index]);
+          return _buildTemplateCard(_templates[index - 1]);
         },
+      ),
+    );
+  }
+
+  Widget _buildAudioSettingsCard() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.mdSpacing),
+      child: GlassCard(
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.lgSpacing),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.volume_up,
+                    color: AppTheme.primaryBlue,
+                    size: 24,
+                  ),
+                  const SizedBox(width: AppConstants.smSpacing),
+                  Text(
+                    'Audio Settings',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppTheme.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppConstants.mdSpacing),
+              
+              // Mute toggle
+              Row(
+                children: [
+                  Icon(
+                    _audioService.isMuted ? Icons.volume_off : Icons.volume_up,
+                    color: AppTheme.white.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppConstants.smSpacing),
+                  Text(
+                    'Mute Timer Sounds',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.white.withOpacity(0.8),
+                    ),
+                  ),
+                  const Spacer(),
+                  Switch(
+                    value: !_audioService.isMuted,
+                    onChanged: (value) {
+                      setState(() {
+                        _audioService.setMuted(!value);
+                      });
+                    },
+                    activeColor: AppTheme.primaryBlue,
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: AppConstants.mdSpacing),
+              
+              // Volume slider
+              if (!_audioService.isMuted) ...[
+                Row(
+                  children: [
+                    Icon(
+                      Icons.volume_down,
+                      color: AppTheme.white.withOpacity(0.5),
+                      size: 20,
+                    ),
+                    const SizedBox(width: AppConstants.smSpacing),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: AppTheme.primaryBlue,
+                          inactiveTrackColor: AppTheme.primaryBlue.withOpacity(0.3),
+                          thumbColor: AppTheme.primaryBlue,
+                          overlayColor: AppTheme.primaryBlue.withOpacity(0.2),
+                        ),
+                        child: Slider(
+                          value: _currentVolume,
+                          onChanged: (value) {
+                            setState(() {
+                              _currentVolume = value;
+                            });
+                            _audioService.setVolume(value);
+                          },
+                          onChangeEnd: (value) {
+                            // Preview sound when slider is released
+                            _audioService.previewVolume();
+                          },
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppConstants.smSpacing),
+                    Icon(
+                      Icons.volume_up,
+                      color: AppTheme.white.withOpacity(0.7),
+                      size: 20,
+                    ),
+                  ],
+                ),
+                
+                Center(
+                  child: Text(
+                    '${(_currentVolume * 100).round()}%',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.white.withOpacity(0.6),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

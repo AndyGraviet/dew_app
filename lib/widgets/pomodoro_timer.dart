@@ -121,7 +121,6 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
   
   // Audio settings
   bool _isTickingEnabled = true;
-  int _lastTickSecond = -1; // Track last tick to avoid duplicates
 
   void _notifyParent() {
     widget.onTimerUpdate?.call(_timeLeft, _isRunning, _completedSessions);
@@ -143,13 +142,9 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
             _timeLeft--;
           });
           
-          // Play tick sound if enabled and at a new second
-          if (_isTickingEnabled && _timeLeft != _lastTickSecond) {
-            _lastTickSecond = _timeLeft;
-            // Play tick sound for last 5 seconds or every 5 seconds
-            if (_timeLeft <= 5 || _timeLeft % 5 == 0) {
-              _audioService.playTick();
-            }
+          // Play tick sound every second when enabled
+          if (_isTickingEnabled) {
+            _audioService.playTick();
           }
         } else {
           // Time is up - handle state transition
@@ -165,12 +160,12 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
   void _handleTimerComplete() {
     if (_currentTemplate == null) return;
     
-    // Play completion sound
-    _audioService.playTimerComplete();
-    
     setState(() {
       switch (_currentTimerState) {
         case TimerState.work:
+          // Work session completed - play "Session Over" sound
+          _audioService.playSessionComplete();
+          
           _completedSessions++;
           _currentSessionInRound++;
           
@@ -188,13 +183,19 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           break;
           
         case TimerState.shortBreak:
-          // Break is over, start next work session
+          // Short break is over - play "Break Over" sound
+          _audioService.playBreakComplete();
+          
+          // Start next work session
           _currentTimerState = TimerState.work;
           _totalTime = _currentTemplate!.workDurationMinutes * 60;
           break;
           
         case TimerState.longBreak:
-          // Long break is over, start new round
+          // Long break is over - play "Break Over" sound
+          _audioService.playBreakComplete();
+          
+          // Start new round
           _currentTimerState = TimerState.work;
           _totalTime = _currentTemplate!.workDurationMinutes * 60;
           break;
@@ -412,15 +413,6 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           iconColor: AppTheme.darkText,
           size: 72,
           semanticsLabel: _isRunning ? 'Pause timer' : 'Start timer',
-        ),
-        const SizedBox(width: 24),
-        // Settings button for templates
-        _buildControlButton(
-          onPressed: _openTemplateSelector,
-          icon: Icons.settings,
-          backgroundColor: AppTheme.white.withValues(alpha: 0.2),
-          iconColor: AppTheme.white,
-          semanticsLabel: 'Open timer template settings',
         ),
         const SizedBox(width: 12),
         // Mute/unmute button

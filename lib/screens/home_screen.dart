@@ -13,6 +13,7 @@ import '../utils/constants.dart';
 import '../widgets/pomodoro_timer.dart';
 import '../widgets/glass_card.dart';
 import 'login_screen.dart';
+import 'timer_templates_screen.dart';
 import 'todo_list_detail_screen.dart';
 
 class AddListIntent extends Intent {
@@ -122,6 +123,20 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _errorMessage = 'Failed to load todo lists: $error';
         _isLoading = false;
       });
+    }
+  }
+
+  void _openTimerSettings() async {
+    // Navigate to timer templates screen for settings
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const TimerTemplatesScreen(),
+      ),
+    );
+    
+    // Update timer state if a template was selected
+    if (result != null) {
+      _updateTimerState();
     }
   }
 
@@ -1013,23 +1028,45 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: _buildMinimizedTimerContent(),
                   ),
                 ],
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _isTimerMinimized = !_isTimerMinimized;
-                    });
-                  },
-                  icon: Icon(
-                    _isTimerMinimized ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-                    color: AppTheme.white,
-                    size: 20,
-                  ),
-                  tooltip: _isTimerMinimized ? 'Expand Timer' : 'Minimize Timer',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Settings button (subtle)
+                    IconButton(
+                      onPressed: _openTimerSettings,
+                      icon: Icon(
+                        Icons.settings,
+                        color: AppTheme.white.withOpacity(0.6),
+                        size: 18,
+                      ),
+                      tooltip: 'Timer Settings',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // Minimize/maximize button
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _isTimerMinimized = !_isTimerMinimized;
+                        });
+                      },
+                      icon: Icon(
+                        _isTimerMinimized ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                        color: AppTheme.white,
+                        size: 20,
+                      ),
+                      tooltip: _isTimerMinimized ? 'Expand Timer' : 'Minimize Timer',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
