@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/friendship_model.dart';
-import '../models/user_model.dart';
+import '../models/user_model.dart' as models;
 
 class FriendshipService {
   static final FriendshipService _instance = FriendshipService._internal();
@@ -208,7 +208,7 @@ class FriendshipService {
   }
 
   // Search for users to add as friends
-  Future<List<User>> searchUsers(String query, {int limit = 20}) async {
+  Future<List<models.User>> searchUsers(String query, {int limit = 20}) async {
     try {
       final userId = _supabase.auth.currentUser!.id;
 
@@ -220,7 +220,7 @@ class FriendshipService {
           .limit(limit);
 
       return (response as List)
-          .map((json) => User.fromJson(json))
+          .map((json) => models.User.fromJson(json))
           .toList();
     } catch (error) {
       print('❌ Error searching users: $error');
