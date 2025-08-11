@@ -155,8 +155,16 @@
     function addDownloadTracking() {
         document.querySelectorAll('.download-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
+                // Only prevent default if href is still '#'
+                if (this.href.endsWith('#')) {
+                    e.preventDefault();
+                    console.warn('Download link not yet loaded from GitHub releases');
+                    return;
+                }
+                
                 const platform = this.id.replace('download-', '');
                 trackDownload(platform);
+                // Let the browser handle the actual download
             });
         });
     }
@@ -164,10 +172,15 @@
     // Smooth scrolling for anchor links
     function enableSmoothScrolling() {
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            // Skip download buttons
+            if (anchor.classList.contains('download-btn')) {
+                return;
+            }
+            
             anchor.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
-                // Only handle actual anchor links
-                if (href && href.startsWith('#')) {
+                // Only handle actual anchor links with valid selectors (not just '#')
+                if (href && href.startsWith('#') && href.length > 1) {
                     e.preventDefault();
                     const target = document.querySelector(href);
                     if (target) {
