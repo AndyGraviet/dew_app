@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 import '../models/timer_template_model.dart';
 import '../services/timer_template_service.dart';
+import '../services/audio_service.dart';
 import '../screens/timer_templates_screen.dart';
 
 enum TimerState {
@@ -116,6 +117,11 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
   
   TimerTemplate? _currentTemplate;
   final TimerTemplateService _timerTemplateService = TimerTemplateService();
+  final AudioService _audioService = AudioService();
+  
+  // Audio settings
+  bool _isTickingEnabled = true;
+  int _lastTickSecond = -1; // Track last tick to avoid duplicates
 
   void _notifyParent() {
     widget.onTimerUpdate?.call(_timeLeft, _isRunning, _completedSessions);
@@ -136,6 +142,15 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           setState(() {
             _timeLeft--;
           });
+          
+          // Play tick sound if enabled and at a new second
+          if (_isTickingEnabled && _timeLeft != _lastTickSecond) {
+            _lastTickSecond = _timeLeft;
+            // Play tick sound for last 5 seconds or every 5 seconds
+            if (_timeLeft <= 5 || _timeLeft % 5 == 0) {
+              _audioService.playTick();
+            }
+          }
         } else {
           // Time is up - handle state transition
           _handleTimerComplete();
@@ -149,6 +164,9 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
 
   void _handleTimerComplete() {
     if (_currentTemplate == null) return;
+    
+    // Play completion sound
+    _audioService.playTimerComplete();
     
     setState(() {
       switch (_currentTimerState) {
@@ -210,12 +228,21 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
     _resetTimer();
   }
+  
+  void _toggleMute() {
+    setState(() {
+      _isTickingEnabled = !_isTickingEnabled;
+      _audioService.setMuted(!_isTickingEnabled);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     // Attach to controller
     widget.controller?._attach(this);
+    // Initialize audio service
+    _audioService.initialize();
     // Load default template
     _loadDefaultTemplate();
     // Notify parent of initial state
@@ -251,6 +278,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
   void dispose() {
     _timer?.cancel();
     widget.controller?._detach();
+    _audioService.stopAll();
     super.dispose();
   }
 
@@ -393,6 +421,16 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           backgroundColor: AppTheme.white.withValues(alpha: 0.2),
           iconColor: AppTheme.white,
           semanticsLabel: 'Open timer template settings',
+        ),
+        const SizedBox(width: 12),
+        // Mute/unmute button
+        _buildControlButton(
+          onPressed: _toggleMute,
+          icon: _isTickingEnabled ? Icons.volume_up : Icons.volume_off,
+          backgroundColor: AppTheme.white.withValues(alpha: 0.2),
+          iconColor: AppTheme.white,
+          size: 44,
+          semanticsLabel: _isTickingEnabled ? 'Mute timer sounds' : 'Enable timer sounds',
         ),
       ],
     );
