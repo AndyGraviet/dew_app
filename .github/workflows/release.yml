@@ -411,17 +411,19 @@ jobs:
 
       - name: Update GitHub Pages with appcast.xml
         run: |
+          # Save the generated appcast.xml
+          cp appcast.xml /tmp/generated_appcast.xml
+          
           # Configure git
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           
-          # We need to update the main branch, not gh-pages
-          # since GitHub Pages is configured to serve from main/docs
-          git checkout main
-          git pull origin main
+          # Fetch and checkout main branch
+          git fetch origin main
+          git checkout -B main origin/main
           
-          # Copy the new appcast.xml to docs folder
-          cp appcast.xml docs/appcast.xml
+          # Copy the generated appcast.xml to docs folder
+          cp /tmp/generated_appcast.xml docs/appcast.xml
           
           # Commit and push to main branch
           git add docs/appcast.xml
