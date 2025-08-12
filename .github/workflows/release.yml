@@ -415,22 +415,15 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           
-          # Checkout gh-pages branch (or create if doesn't exist)
-          git fetch origin
-          if git rev-parse --verify origin/gh-pages > /dev/null 2>&1; then
-            git checkout gh-pages
-          else
-            git checkout --orphan gh-pages
-            git rm -rf .
-          fi
-          
-          # Copy the new appcast.xml
-          cp appcast.xml docs/appcast.xml || mkdir -p docs && cp appcast.xml docs/appcast.xml
-          
-          # Commit and push
-          git add docs/appcast.xml
-          git commit -m "Update appcast.xml for version ${{ steps.get_version.outputs.version }}"
-          git push origin gh-pages
-          
-          # Switch back to main branch
+          # We need to update the main branch, not gh-pages
+          # since GitHub Pages is configured to serve from main/docs
           git checkout main
+          git pull origin main
+          
+          # Copy the new appcast.xml to docs folder
+          cp appcast.xml docs/appcast.xml
+          
+          # Commit and push to main branch
+          git add docs/appcast.xml
+          git commit -m "Update appcast.xml for version ${{ steps.get_version.outputs.version }}" || echo "No changes to commit"
+          git push origin main
