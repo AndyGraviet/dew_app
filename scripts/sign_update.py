@@ -52,7 +52,8 @@ if __name__ == "__main__":
     
     try:
         signature = sign_file(file_path, key_path)
-        print(f"sparkle:edSignature=\"{signature}\"")
+        # Output just the signature for easier parsing
+        print(signature)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

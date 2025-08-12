@@ -221,9 +221,16 @@ jobs:
           # Save private key to temporary file
           echo "$SPARKLE_PRIVATE_KEY" > sparkle_private_key.pem
           
-          # Use Sparkle's sign_update tool for Ed25519 signature
+          # Use our Python sign_update tool for Ed25519 signature
           echo "🔏 Generating Ed25519 signature for $DMG_PATH"
-          SIGNATURE=$(./sparkle_tools/sign_update "$DMG_PATH" -f sparkle_private_key.pem | awk '{print $2}')
+          SIGNATURE=$(python3 ./sparkle_tools/sign_update "$DMG_PATH" -f sparkle_private_key.pem)
+          
+          # Debug: Check if signature was generated
+          if [ -z "$SIGNATURE" ]; then
+            echo "❌ ERROR: Signature generation failed or returned empty"
+            python3 ./sparkle_tools/sign_update "$DMG_PATH" -f sparkle_private_key.pem || true
+            exit 1
+          fi
           
           echo "✅ Signature generated: $SIGNATURE"
           echo "SPARKLE_SIGNATURE_${{ matrix.arch }}=$SIGNATURE" >> $GITHUB_ENV
@@ -246,15 +253,23 @@ jobs:
       - name: Save build metadata (macOS only)
         if: matrix.platform == 'macos'
         run: |
+          # Get environment variables
+          SIGNATURE_VAR="SPARKLE_SIGNATURE_${{ matrix.arch }}"
+          SIZE_VAR="DMG_SIZE_${{ matrix.arch }}"
+          
           # Save metadata for appcast generation
           cat > build_metadata_${{ matrix.arch }}.json << EOF
           {
             "arch": "${{ matrix.arch }}",
-            "signature": "${{ env[format('SPARKLE_SIGNATURE_{0}', matrix.arch)] }}",
-            "size": "${{ env[format('DMG_SIZE_{0}', matrix.arch)] }}",
+            "signature": "${!SIGNATURE_VAR}",
+            "size": "${!SIZE_VAR}",
             "filename": "dew_app-${{ matrix.arch }}.dmg"
           }
           EOF
+          
+          # Debug: Show the metadata
+          echo "📋 Build metadata for ${{ matrix.arch }}:"
+          cat build_metadata_${{ matrix.arch }}.json
           
       - name: Upload build metadata
         if: matrix.platform == 'macos'
