@@ -6,24 +6,13 @@
         <language>en</language>
         <link>https://AndyGraviet.github.io/dew_app</link>
         <item>
-            <title>Dew v1.1.1</title>
+            <title>Dew v1.1.3</title>
             <description><![CDATA[
-                <h3>What's New in v1.1.1</h3>
+                <h3>What's New in v1.1.3</h3>
                 <ul>
-                    <li>Fixed auto-update mechanism for macOS</li>
-                    <li>Improved Sparkle integration with proper Ed25519 signatures</li>
-                    <li>Enhanced GitHub Pages site with modern animations</li>
-                </ul>
-                
-                <h3>Previous Updates (v1.1.0)</h3>
-                <ul>
-                    <li>Timer sounds: Custom ticking and completion sounds</li>
-                    <li>Volume control for timer audio</li>
-                    <li>macOS menu bar integration</li>
-                    <li>Fixed email confirmation auto-login</li>
-                    <li>Fixed keyboard input in login forms</li>
-                    <li>Fixed task reordering to maintain user arrangement</li>
-                    <li>UI improvements for minimized timer state</li>
+                    <li>Auto-update functionality</li>
+                    <li>Cross-platform support</li>
+                    <li>Enhanced productivity features</li>
                 </ul>
                 
                 <p><strong>System Requirements:</strong></p>
@@ -34,19 +23,18 @@
                 
                 <p><em>This update includes the latest features and improvements. The app will update automatically.</em></p>
             ]]></description>
-            <pubDate>Mon, 12 Aug 2025 00:00:00 +0000</pubDate>
-            <sparkle:version>1.1.1</sparkle:version>
-            <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+            <pubDate>Tue, 12 Aug 2025 23:46:23 +0000</pubDate>
+            <sparkle:version>1.1.3</sparkle:version>
+            <sparkle:shortVersionString>1.1.3</sparkle:shortVersionString>
             
             <!-- macOS Universal DMG -->
-            <!-- Note: This signature will be replaced by GitHub Actions when the release is created -->
             <enclosure
-                url="https://github.com/AndyGraviet/dew_app/releases/download/v1.1.1/dew_app-macos-universal.dmg"
-                length="60211749"
+                url="https://github.com/AndyGraviet/dew_app/releases/download/v1.1.3/dew_app-macos-universal.dmg"
+                length="25539573"
                 type="application/x-apple-diskimage"
                 sparkle:os="macos"
                 sparkle:installerArguments="/Applications"
-                sparkle:edSignature="PLACEHOLDER_SIGNATURE" />
+                sparkle:edSignature="" />
         </item>
     </channel>
 </rss>
