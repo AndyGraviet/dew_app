@@ -191,30 +191,25 @@ jobs:
           ls -la dew_app-windows-x64.zip
 
 
-      - name: Download Sparkle tools (macOS only)
+      - name: Setup Python for signing (macOS only)
+        if: matrix.platform == 'macos'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install signing dependencies (macOS only)
         if: matrix.platform == 'macos'
         run: |
-          SPARKLE_VERSION="2.6.4"
-          SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          echo "📥 Installing cryptography for Ed25519 signing..."
+          pip install cryptography
           
-          echo "📥 Downloading Sparkle ${SPARKLE_VERSION}..."
+          # Use our Python signing script
           mkdir -p sparkle_tools
-          cd sparkle_tools
+          cp scripts/sign_update.py sparkle_tools/sign_update
+          chmod +x sparkle_tools/sign_update
           
-          curl -L -o sparkle.tar.xz "$SPARKLE_URL"
-          tar -xf sparkle.tar.xz
-          
-          # Copy the command-line tools we need
-          cp -f Sparkle.framework/Versions/Current/Resources/generate_appcast ./
-          cp -f Sparkle.framework/Versions/Current/Resources/sign_update ./
-          chmod +x generate_appcast sign_update
-          
-          # Clean up
-          rm -f sparkle.tar.xz
-          rm -rf Sparkle.framework
-          
-          echo "✅ Sparkle tools ready"
-          cd ..
+          echo "✅ Signing tools ready"
+          ls -la sparkle_tools/
 
       - name: Generate Sparkle signature (macOS only)
         if: matrix.platform == 'macos'
