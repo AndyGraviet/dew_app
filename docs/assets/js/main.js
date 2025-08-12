@@ -234,6 +234,150 @@
         }, 10000);
     }
 
+    // Create floating particles
+    function createParticles() {
+        const particleContainer = document.getElementById('particles');
+        if (!particleContainer) return;
+        
+        const particleCount = 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            // Random position
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            
+            // Random animation delay
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 4) + 's';
+            
+            particleContainer.appendChild(particle);
+        }
+    }
+    
+    // Animate letters with staggered delay
+    function animateLetters() {
+        const letters = document.querySelectorAll('.letter');
+        letters.forEach((letter, index) => {
+            letter.style.setProperty('--delay', `${index * 0.1}s`);
+        });
+    }
+    
+    // Intersection Observer for scroll animations
+    function setupScrollAnimations() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                } else {
+                    // Optional: remove animation class when out of view
+                    // entry.target.classList.remove('animate');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe elements for animation
+        const elementsToAnimate = document.querySelectorAll(
+            '.feature, .features h2, .download, .requirements'
+        );
+        
+        elementsToAnimate.forEach(el => {
+            observer.observe(el);
+        });
+    }
+    
+    // Add typing animation to subtitle
+    function setupTypingAnimation() {
+        const typingElement = document.querySelector('.typing-text');
+        if (typingElement) {
+            const text = typingElement.textContent;
+            typingElement.textContent = '';
+            typingElement.style.width = '0';
+            
+            // Start typing after hero title animation
+            setTimeout(() => {
+                typingElement.textContent = text;
+                typingElement.style.width = text.length + 'ch';
+            }, 1500);
+        }
+    }
+    
+    // Add mouse tracking for particle effects
+    function setupMouseEffects() {
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Create temporary mouse trail particles
+            if (Math.random() < 0.1) {
+                createMouseParticle(mouseX, mouseY);
+            }
+        });
+    }
+    
+    function createMouseParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.8), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            left: ${x}px;
+            top: ${y}px;
+            animation: mouseParticle 2s ease-out forwards;
+        `;
+        
+        document.body.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+        }, 2000);
+    }
+    
+    // Add mouse particle animation to CSS dynamically
+    function addMouseParticleCSS() {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes mouseParticle {
+                0% {
+                    opacity: 1;
+                    transform: scale(0) rotate(0deg);
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1.5) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Hide loading overlay
+    function hideLoadingOverlay() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                setTimeout(() => {
+                    overlay.remove();
+                }, 800);
+            }, 2500); // Show loading for 2.5 seconds
+        }
+    }
+
     // Initialize everything when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
         updatePlatformDetection();
@@ -243,8 +387,19 @@
         addDownloadTracking();
         enableSmoothScrolling();
         
+        // Initialize new animation features
+        createParticles();
+        animateLetters();
+        setupScrollAnimations();
+        setupTypingAnimation();
+        setupMouseEffects();
+        addMouseParticleCSS();
+        
+        // Hide loading overlay
+        hideLoadingOverlay();
+        
         // Check for updates after a delay
-        setTimeout(checkForUpdates, 2000);
+        setTimeout(checkForUpdates, 3000);
     });
 
     // Export functions for global access if needed

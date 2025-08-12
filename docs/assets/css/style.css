@@ -65,30 +65,238 @@ body {
     color: white;
 }
 
-/* Hero Section */
+/* Hero Section with Motion Graphics */
 .hero {
+    position: relative;
     text-align: center;
-    padding: 4rem 0;
+    padding: 6rem 0;
     color: white;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
 }
 
-.hero h1 {
-    font-size: 3.5rem;
+/* Particle Background */
+.particle-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 1;
+    }
+}
+
+/* Logo Animation */
+.hero-logo {
+    margin-bottom: 2rem;
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+.logo-image {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 25px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Animated Title */
+.hero-title {
+    font-size: 4rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    background: linear-gradient(45deg, #fff, #f0f8ff);
+    background: linear-gradient(45deg, #fff, #f0f8ff, #e6f3ff, #fff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+.letter {
+    display: inline-block;
+    animation: letterDance 0.6s ease-out forwards;
+    animation-delay: var(--delay);
+    opacity: 0;
+    transform: translateY(50px) rotate(10deg);
+}
+
+@keyframes letterDance {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) rotate(10deg) scale(0.8);
+    }
+    50% {
+        transform: translateY(-10px) rotate(-5deg) scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg) scale(1);
+    }
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Subtitle with Typing Effect */
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    height: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.typing-text {
+    border-right: 2px solid rgba(255, 255, 255, 0.8);
+    padding-right: 5px;
+    animation: typing 3s steps(20) 1s forwards, blink 1s step-end infinite 4s;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    background: linear-gradient(45deg, #4CAF50, #45a049, #66bb6a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-.hero p {
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blink {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+}
+
+/* Hero Description */
+.hero-description {
     font-size: 1.3rem;
     margin-bottom: 3rem;
-    opacity: 0.9;
+    opacity: 0;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    animation: fadeInUp 0.8s ease-out 2s forwards;
+    transform: translateY(30px);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 0.9;
+        transform: translateY(0);
+    }
+}
+
+/* Call to Action Button */
+.hero-cta {
+    margin-top: 2rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 2.5s forwards;
+    transform: translateY(30px);
+}
+
+.cta-button {
+    position: relative;
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(76, 175, 80, 0.6);
+}
+
+.button-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+.cta-button:hover .button-shine {
+    left: 100%;
+}
+
+/* Platform Detection Enhancement */
+.detected-platform {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
 }
 
 /* Download Section */
@@ -107,6 +315,27 @@ body {
     font-size: 2rem;
     margin-bottom: 2rem;
     text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.version-number {
+    display: inline-block;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+    animation: versionPulse 2s ease-in-out infinite;
+}
+
+@keyframes versionPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .platform-detection {
@@ -302,14 +531,133 @@ body {
     color: white;
 }
 
-/* Responsive */
+/* Loading Animation */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    width: 0%;
+    border-radius: 2px;
+    animation: loadProgress 2s ease-out forwards;
+}
+
+@keyframes loadProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+
+/* Enhanced Micro-interactions */
+.feature-icon:hover {
+    animation: iconBounce 0.6s ease-in-out;
+}
+
+@keyframes iconBounce {
+    0%, 20%, 60%, 100% {
+        transform: translateY(0) scale(1.2) rotate(360deg);
+    }
+    40% {
+        transform: translateY(-20px) scale(1.4) rotate(180deg);
+    }
+    80% {
+        transform: translateY(-5px) scale(1.3) rotate(270deg);
+    }
+}
+
+/* Footer Enhancement */
+.footer {
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #4CAF50, transparent);
+    animation: footerLine 3s ease-in-out infinite;
+}
+
+@keyframes footerLine {
+    0%, 100% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(100%);
+    }
+}
+
+/* Responsive Enhancements */
 @media (max-width: 768px) {
-    .hero h1 {
+    .hero-title {
         font-size: 2.5rem;
     }
     
-    .hero p {
+    .hero-description {
         font-size: 1.1rem;
+    }
+    
+    .logo-image {
+        width: 80px;
+        height: 80px;
     }
     
     .download-buttons {
@@ -323,6 +671,11 @@ body {
     
     .nav {
         gap: 1rem;
+    }
+    
+    .particle {
+        width: 2px;
+        height: 2px;
     }
 }
 
