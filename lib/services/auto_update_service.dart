@@ -24,99 +24,59 @@ class AutoUpdateService {
       // Set the feed URL for update checks
       await autoUpdater.setFeedURL(_feedURL);
       
-      // Check for updates immediately on startup
-      await checkForUpdates();
-      
       // Schedule automatic update checks every 24 hours
       await autoUpdater.setScheduledCheckInterval(86400);
       
+      // For macOS, Sparkle handles everything automatically
+      // The Info.plist settings control the behavior:
+      // - SUEnableAutomaticChecks: true (checks on startup and periodically)
+      // - SUAutomaticallyUpdate: true (downloads and installs automatically)
+      // - SUAllowsAutomaticUpdates: true (enables automatic updates)
+      
       _isInitialized = true;
       print('✅ Auto-updater initialized successfully');
+      print('📍 Feed URL: $_feedURL');
+      print('🔄 Automatic checks enabled (every 24 hours)');
+      
+      // Note: We don't call checkForUpdates() here because Sparkle
+      // automatically checks on app launch when SUEnableAutomaticChecks is true
     } catch (error) {
       print('❌ Error initializing auto-updater: $error');
     }
   }
 
   /// Manually check for updates
-  Future<void> checkForUpdates({bool silent = true}) async {
+  Future<void> checkForUpdates() async {
     if (!_isDesktopPlatform()) return;
 
     try {
-      if (silent) {
-        // Silent check - updates _updateAvailable flag
-        _updateAvailable = await _hasUpdate();
-      } else {
-        // Show update dialog if available
-        await autoUpdater.checkForUpdates();
-      }
+      // Let Sparkle handle the UI and update process
+      // This will show Sparkle's built-in update dialog if an update is available
+      await autoUpdater.checkForUpdates();
+      print('🔍 Manual update check triggered');
     } catch (error) {
       print('❌ Error checking for updates: $error');
     }
   }
 
-  /// Show update dialog to user
-  Future<void> showUpdateDialog(BuildContext context) async {
-    if (!_updateAvailable) return;
-
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.system_update, color: Colors.blue),
-              SizedBox(width: 8),
-              Text('Update Available'),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('A new version of Dew is available.'),
-              SizedBox(height: 8),
-              Text('The update will be downloaded and installed automatically.'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Later'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Update Now'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result == true) {
-      await _startUpdate();
-    }
+  /// Add menu item or button to manually check for updates
+  /// This can be called from settings or menu bar
+  Future<void> checkForUpdatesManually() async {
+    print('👤 User requested manual update check');
+    await checkForUpdates();
   }
 
-  /// Check if update is available without showing UI
-  Future<bool> _hasUpdate() async {
+  /// Get the current state of automatic updates
+  Future<bool> getAutomaticUpdatesEnabled() async {
+    if (!_isDesktopPlatform()) return false;
+    
     try {
-      // This would need to be implemented by checking the feed manually
-      // For now, we'll use the built-in check
-      await autoUpdater.checkForUpdates();
-      return false; // The actual check is handled by Sparkle
+      // This would need plugin support to query Sparkle's state
+      // For now, we know it's enabled via Info.plist
+      return true;
     } catch (error) {
-      print('❌ Error checking update availability: $error');
+      print('❌ Error checking automatic update state: $error');
       return false;
-    }
-  }
-
-  /// Start the update process
-  Future<void> _startUpdate() async {
-    try {
-      await autoUpdater.checkForUpdates();
-    } catch (error) {
-      print('❌ Error starting update: $error');
     }
   }
 
@@ -125,32 +85,32 @@ class AutoUpdateService {
     return Platform.isMacOS || Platform.isWindows || Platform.isLinux;
   }
 
-  /// Get current app version
-  String getCurrentVersion() {
-    // This will be populated from pubspec.yaml
-    return '1.0.0'; // TODO: Get from package info
+  /// Get current app version from package info
+  Future<String> getCurrentVersion() async {
+    try {
+      // For now return the version from pubspec.yaml
+      // In a production app, you'd use package_info_plus:
+      // final info = await PackageInfo.fromPlatform();
+      // return info.version;
+      return '1.1.0'; // Current version
+    } catch (error) {
+      print('❌ Error getting app version: $error');
+      return 'Unknown';
+    }
   }
 
-  /// Show update notification badge
-  Widget updateBadge({required Widget child}) {
-    if (!_updateAvailable) return child;
-
-    return Stack(
-      children: [
-        child,
-        Positioned(
-          top: 0,
-          right: 0,
-          child: Container(
-            width: 12,
-            height: 12,
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ],
+  /// Create a menu item or settings option for update checks
+  Widget buildUpdateMenuItem({VoidCallback? onTap}) {
+    return ListTile(
+      leading: const Icon(Icons.system_update),
+      title: const Text('Check for Updates'),
+      subtitle: FutureBuilder<String>(
+        future: getCurrentVersion(),
+        builder: (context, snapshot) {
+          return Text('Current version: ${snapshot.data ?? 'Loading...'}');
+        },
+      ),
+      onTap: onTap ?? () => checkForUpdatesManually(),
     );
   }
 

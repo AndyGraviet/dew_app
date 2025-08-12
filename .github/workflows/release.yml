@@ -191,7 +191,32 @@ jobs:
           ls -la dew_app-windows-x64.zip
 
 
-      - name: Generate release signature (macOS only)
+      - name: Download Sparkle tools (macOS only)
+        if: matrix.platform == 'macos'
+        run: |
+          SPARKLE_VERSION="2.6.4"
+          SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          
+          echo "📥 Downloading Sparkle ${SPARKLE_VERSION}..."
+          mkdir -p sparkle_tools
+          cd sparkle_tools
+          
+          curl -L -o sparkle.tar.xz "$SPARKLE_URL"
+          tar -xf sparkle.tar.xz
+          
+          # Copy the command-line tools we need
+          cp -f Sparkle.framework/Versions/Current/Resources/generate_appcast ./
+          cp -f Sparkle.framework/Versions/Current/Resources/sign_update ./
+          chmod +x generate_appcast sign_update
+          
+          # Clean up
+          rm -f sparkle.tar.xz
+          rm -rf Sparkle.framework
+          
+          echo "✅ Sparkle tools ready"
+          cd ..
+
+      - name: Generate Sparkle signature (macOS only)
         if: matrix.platform == 'macos'
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
@@ -199,14 +224,21 @@ jobs:
           DMG_PATH="${{ matrix.artifact-path }}dew_app-${{ matrix.arch }}.dmg"
           
           # Save private key to temporary file
-          echo "$SPARKLE_PRIVATE_KEY" > temp_private_key.pem
+          echo "$SPARKLE_PRIVATE_KEY" > sparkle_private_key.pem
           
-          # Generate signature
-          SIGNATURE=$(openssl dgst -sha256 -sign temp_private_key.pem "$DMG_PATH" | base64 | tr -d '\n')
-          echo "SPARKLE_SIGNATURE=$SIGNATURE" >> $GITHUB_ENV
+          # Use Sparkle's sign_update tool for Ed25519 signature
+          echo "🔏 Generating Ed25519 signature for $DMG_PATH"
+          SIGNATURE=$(./sparkle_tools/sign_update "$DMG_PATH" -f sparkle_private_key.pem | awk '{print $2}')
+          
+          echo "✅ Signature generated: $SIGNATURE"
+          echo "SPARKLE_SIGNATURE_${{ matrix.arch }}=$SIGNATURE" >> $GITHUB_ENV
+          
+          # Also save file size for appcast
+          FILE_SIZE=$(stat -f%z "$DMG_PATH")
+          echo "DMG_SIZE_${{ matrix.arch }}=$FILE_SIZE" >> $GITHUB_ENV
           
           # Clean up
-          rm temp_private_key.pem
+          rm -f sparkle_private_key.pem
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -215,6 +247,26 @@ jobs:
           path: |
             ${{ matrix.platform == 'macos' && format('{0}*.dmg', matrix.artifact-path) || '' }}
             ${{ matrix.platform == 'windows' && 'dew_app-windows-x64.zip' || '' }}
+            
+      - name: Save build metadata (macOS only)
+        if: matrix.platform == 'macos'
+        run: |
+          # Save metadata for appcast generation
+          cat > build_metadata_${{ matrix.arch }}.json << EOF
+          {
+            "arch": "${{ matrix.arch }}",
+            "signature": "${{ env[format('SPARKLE_SIGNATURE_{0}', matrix.arch)] }}",
+            "size": "${{ env[format('DMG_SIZE_{0}', matrix.arch)] }}",
+            "filename": "dew_app-${{ matrix.arch }}.dmg"
+          }
+          EOF
+          
+      - name: Upload build metadata
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-${{ matrix.arch }}
+          path: build_metadata_${{ matrix.arch }}.json
 
   create-release:
     needs: build-and-release
@@ -301,11 +353,89 @@ jobs:
           asset_name: dew_app-windows-x64.zip
           asset_content_type: application/zip
 
-
-      - name: Trigger website update
+      - name: Generate appcast.xml
         run: |
-          # This will trigger the GitHub Pages rebuild to update appcast.xml
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/pages/builds"
+          # Get release information
+          VERSION="${{ steps.get_version.outputs.version }}"
+          VERSION_NUMBER="${VERSION#v}"
+          RELEASE_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
+          
+          # Download metadata
+          cat artifacts/metadata-universal/build_metadata_universal.json
+          
+          # Extract metadata
+          UNIVERSAL_SIGNATURE=$(jq -r '.signature' artifacts/metadata-universal/build_metadata_universal.json)
+          UNIVERSAL_SIZE=$(jq -r '.size' artifacts/metadata-universal/build_metadata_universal.json)
+          
+          # Create appcast.xml
+          cat > appcast.xml << EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+              <channel>
+                  <title>Dew App</title>
+                  <description>Productivity Reimagined - Updates for Dew App</description>
+                  <language>en</language>
+                  <link>https://AndyGraviet.github.io/dew_app</link>
+                  <item>
+                      <title>Dew ${VERSION}</title>
+                      <description><![CDATA[
+                          <h3>What's New in ${VERSION}</h3>
+                          <ul>
+                              <li>Auto-update functionality</li>
+                              <li>Cross-platform support</li>
+                              <li>Enhanced productivity features</li>
+                          </ul>
+                          
+                          <p><strong>System Requirements:</strong></p>
+                          <ul>
+                              <li>macOS: macOS 10.15 or later</li>
+                              <li>Windows: Windows 10 or later</li>
+                          </ul>
+                          
+                          <p><em>This update includes the latest features and improvements. The app will update automatically.</em></p>
+                      ]]></description>
+                      <pubDate>${RELEASE_DATE}</pubDate>
+                      <sparkle:version>${VERSION_NUMBER}</sparkle:version>
+                      <sparkle:shortVersionString>${VERSION_NUMBER}</sparkle:shortVersionString>
+                      
+                      <!-- macOS Universal DMG -->
+                      <enclosure
+                          url="https://github.com/${{ github.repository }}/releases/download/${VERSION}/dew_app-macos-universal.dmg"
+                          length="${UNIVERSAL_SIZE}"
+                          type="application/x-apple-diskimage"
+                          sparkle:os="macos"
+                          sparkle:installerArguments="/Applications"
+                          sparkle:edSignature="${UNIVERSAL_SIGNATURE}" />
+                  </item>
+              </channel>
+          </rss>
+          EOF
+          
+          echo "✅ Generated appcast.xml"
+          cat appcast.xml
+
+      - name: Update GitHub Pages with appcast.xml
+        run: |
+          # Configure git
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          # Checkout gh-pages branch (or create if doesn't exist)
+          git fetch origin
+          if git rev-parse --verify origin/gh-pages > /dev/null 2>&1; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf .
+          fi
+          
+          # Copy the new appcast.xml
+          cp appcast.xml docs/appcast.xml || mkdir -p docs && cp appcast.xml docs/appcast.xml
+          
+          # Commit and push
+          git add docs/appcast.xml
+          git commit -m "Update appcast.xml for version ${{ steps.get_version.outputs.version }}"
+          git push origin gh-pages
+          
+          # Switch back to main branch
+          git checkout main
