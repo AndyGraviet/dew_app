@@ -92,7 +92,7 @@ class AutoUpdateService {
       // In a production app, you'd use package_info_plus:
       // final info = await PackageInfo.fromPlatform();
       // return info.version;
-      return '1.1.3'; // Current version
+      return '1.1.4'; // Current version
     } catch (error) {
       print('❌ Error getting app version: $error');
       return 'Unknown';
