@@ -16,6 +16,7 @@ import '../utils/constants.dart';
 import '../widgets/pomodoro_timer.dart';
 import '../widgets/glass_card.dart';
 import '../services/tray_service.dart';
+import '../services/auto_update_service.dart';
 import 'login_screen.dart';
 import 'timer_templates_screen.dart';
 import 'todo_list_detail_screen.dart';
@@ -893,6 +894,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               _signOut();
             } else if (value == 'refresh') {
               _loadTodoLists();
+            } else if (value == 'check_updates') {
+              print('🔍 Manual update check requested');
+              AutoUpdateService().checkForUpdates();
             }
           },
           itemBuilder: (context) => [
@@ -903,6 +907,16 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Icon(Icons.refresh),
                   SizedBox(width: 8),
                   Text('Refresh'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'check_updates',
+              child: Row(
+                children: [
+                  Icon(Icons.system_update),
+                  SizedBox(width: 8),
+                  Text('Check for Updates'),
                 ],
               ),
             ),

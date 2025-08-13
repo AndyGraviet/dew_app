@@ -38,8 +38,9 @@ class AutoUpdateService {
       print('📍 Feed URL: $_feedURL');
       print('🔄 Automatic checks enabled (every 24 hours)');
       
-      // Note: We don't call checkForUpdates() here because Sparkle
-      // automatically checks on app launch when SUEnableAutomaticChecks is true
+      // Actually trigger a check on startup to ensure it works
+      print('🔍 Performing startup update check...');
+      await checkForUpdates();
     } catch (error) {
       print('❌ Error initializing auto-updater: $error');
     }
@@ -92,7 +93,7 @@ class AutoUpdateService {
       // In a production app, you'd use package_info_plus:
       // final info = await PackageInfo.fromPlatform();
       // return info.version;
-      return '1.2.1'; // Current version
+      return '1.2.2'; // Current version
     } catch (error) {
       print('❌ Error getting app version: $error');
       return 'Unknown';
