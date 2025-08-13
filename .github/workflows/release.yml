@@ -218,8 +218,35 @@ jobs:
         run: |
           DMG_PATH="${{ matrix.artifact-path }}dew_app-${{ matrix.arch }}.dmg"
           
-          # Save private key to temporary file
-          echo "$SPARKLE_PRIVATE_KEY" > sparkle_private_key.pem
+          # Save private key to temporary file (handle GitHub Secrets formatting)
+          # GitHub Secrets might store the key as a single line or with escaped newlines
+          if [[ "$SPARKLE_PRIVATE_KEY" == *"\\n"* ]]; then
+            # Key has escaped newlines, convert them
+            echo -e "$SPARKLE_PRIVATE_KEY" > sparkle_private_key.pem
+          elif [[ "$SPARKLE_PRIVATE_KEY" == *"BEGIN PRIVATE KEY"* ]] && [[ "$SPARKLE_PRIVATE_KEY" != *$'\n'* ]]; then
+            # Key is on single line, need to add line breaks
+            echo "$SPARKLE_PRIVATE_KEY" | sed 's/-----BEGIN PRIVATE KEY-----/-----BEGIN PRIVATE KEY-----\n/' | sed 's/-----END PRIVATE KEY-----/\n-----END PRIVATE KEY-----/' | sed 's/\([A-Za-z0-9+/]\{64\}\)/\1\n/g' > sparkle_private_key.pem
+          else
+            # Key should be in correct format already
+            echo "$SPARKLE_PRIVATE_KEY" > sparkle_private_key.pem
+          fi
+          
+          # Debug: Check key format
+          echo "🔍 Key file contents:"
+          cat sparkle_private_key.pem
+          echo ""
+          echo "🔍 Key file size: $(wc -c < sparkle_private_key.pem) bytes"
+          echo "🔍 Key file lines: $(wc -l < sparkle_private_key.pem)"
+          
+          # Verify it's a valid PEM format
+          if ! grep -q "BEGIN PRIVATE KEY" sparkle_private_key.pem; then
+            echo "❌ ERROR: Key doesn't contain BEGIN PRIVATE KEY header"
+            exit 1
+          fi
+          if ! grep -q "END PRIVATE KEY" sparkle_private_key.pem; then
+            echo "❌ ERROR: Key doesn't contain END PRIVATE KEY footer"
+            exit 1
+          fi
           
           # Use our Python sign_update tool for Ed25519 signature
           echo "🔏 Generating Ed25519 signature for $DMG_PATH"
