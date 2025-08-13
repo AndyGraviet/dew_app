@@ -6,9 +6,9 @@
         <language>en</language>
         <link>https://AndyGraviet.github.io/dew_app</link>
         <item>
-            <title>Dew v1.2.1</title>
+            <title>Dew v1.2.2</title>
             <description><![CDATA[
-                <h3>What's New in v1.2.1</h3>
+                <h3>What's New in v1.2.2</h3>
                 <ul>
                     <li>Auto-update functionality</li>
                     <li>Cross-platform support</li>
@@ -23,18 +23,18 @@
                 
                 <p><em>This update includes the latest features and improvements. The app will update automatically.</em></p>
             ]]></description>
-            <pubDate>Wed, 13 Aug 2025 01:38:16 +0000</pubDate>
-            <sparkle:version>1.2.1</sparkle:version>
-            <sparkle:shortVersionString>1.2.1</sparkle:shortVersionString>
+            <pubDate>Wed, 13 Aug 2025 02:39:21 +0000</pubDate>
+            <sparkle:version>1.2.2</sparkle:version>
+            <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
             
             <!-- macOS Universal DMG -->
             <enclosure
-                url="https://github.com/AndyGraviet/dew_app/releases/download/v1.2.1/dew_app-macos-universal.dmg"
-                length="25539957"
+                url="https://github.com/AndyGraviet/dew_app/releases/download/v1.2.2/dew_app-macos-universal.dmg"
+                length="25546720"
                 type="application/x-apple-diskimage"
                 sparkle:os="macos"
                 sparkle:installerArguments="/Applications"
-                sparkle:edSignature="LltTIVf3SudL7LVMEKH9t3sqyOc/jvj9bHCrI+1oEpgn83ky2X7/5vqjqVBgyumipJma91op7vcp/9mSSjOeBg==" />
+                sparkle:edSignature="Ql2nVz74W+FdMvMilrkH5ZHbD+/9owo2LSyezzglV9x7DpFTuUsg4ptV0/EtAjn2MIufD+RkzirUeCx7uB4HAw==" />
         </item>
     </channel>
 </rss>
