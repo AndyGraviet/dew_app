@@ -241,6 +241,26 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  void _skipSession() {
+    // Stop the current timer
+    _timer?.cancel();
+    setState(() {
+      _isRunning = false;
+      _timeLeft = 0;
+    });
+    
+    // Immediately move to the next session
+    _handleTimerComplete();
+    
+    // Notify about the skip
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Skipped to ${TimerStateInfo.fromState(_currentTimerState).displayName}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -301,34 +321,49 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // State indicator badge
-        Semantics(
-          label: stateInfo.accessibilityLabel,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: stateInfo.color,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  stateInfo.icon,
-                  color: Colors.white,
-                  size: 18,
+        // State indicator badge with mute button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Semantics(
+              label: stateInfo.accessibilityLabel,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: stateInfo.color,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  stateInfo.displayName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      stateInfo.icon,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      stateInfo.displayName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            // Mute/unmute button
+            _buildControlButton(
+              onPressed: _toggleMute,
+              icon: _isTickingEnabled ? Icons.volume_up : Icons.volume_off,
+              backgroundColor: AppTheme.white.withValues(alpha: 0.2),
+              iconColor: AppTheme.white,
+              size: 36,
+              semanticsLabel: _isTickingEnabled ? 'Mute timer sounds' : 'Enable timer sounds',
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         _buildTimerDisplay(),
@@ -418,15 +453,14 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           size: 72,
           semanticsLabel: _isRunning ? 'Pause timer' : 'Start timer',
         ),
-        const SizedBox(width: 12),
-        // Mute/unmute button
+        const SizedBox(width: 24),
+        // Skip button
         _buildControlButton(
-          onPressed: _toggleMute,
-          icon: _isTickingEnabled ? Icons.volume_up : Icons.volume_off,
+          onPressed: _skipSession,
+          icon: Icons.skip_next,
           backgroundColor: AppTheme.white.withValues(alpha: 0.2),
           iconColor: AppTheme.white,
-          size: 44,
-          semanticsLabel: _isTickingEnabled ? 'Mute timer sounds' : 'Enable timer sounds',
+          semanticsLabel: 'Skip to next session',
         ),
       ],
     );

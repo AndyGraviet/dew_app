@@ -33,8 +33,8 @@ void main() async {
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-    windowButtonVisibility: false,
+    titleBarStyle: TitleBarStyle.normal,
+    windowButtonVisibility: true,
   );
   
   windowManager.waitUntilReadyToShow(windowOptions, () async {

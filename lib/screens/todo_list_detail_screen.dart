@@ -317,6 +317,7 @@ class _TodoListDetailScreenState extends State<TodoListDetailScreen> {
           icon: const Icon(Icons.arrow_back, color: AppTheme.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

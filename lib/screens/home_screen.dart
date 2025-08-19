@@ -1288,6 +1288,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: TabBar(
                   controller: _tabController,
                   isScrollable: true,
+                  tabAlignment: TabAlignment.start,
                   labelColor: AppTheme.white,
                   unselectedLabelColor: AppTheme.white.withOpacity(0.6),
                   indicatorColor: AppTheme.primaryBlue,

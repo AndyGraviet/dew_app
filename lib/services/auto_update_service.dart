@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_updater/auto_updater.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AutoUpdateService {
   static final AutoUpdateService _instance = AutoUpdateService._internal();
@@ -21,26 +22,28 @@ class AutoUpdateService {
     if (_isInitialized || !_isDesktopPlatform()) return;
 
     try {
-      // Set the feed URL for update checks
+      // According to auto_updater documentation, we must set feed URL before any other operations
+      print('🚀 Initializing Sparkle auto-updater...');
       await autoUpdater.setFeedURL(_feedURL);
+      print('✅ Feed URL set: $_feedURL');
       
-      // Schedule automatic update checks every 24 hours
-      await autoUpdater.setScheduledCheckInterval(86400);
-      
-      // For macOS, Sparkle handles everything automatically
-      // The Info.plist settings control the behavior:
-      // - SUEnableAutomaticChecks: true (checks on startup and periodically)
-      // - SUAutomaticallyUpdate: true (downloads and installs automatically)
-      // - SUAllowsAutomaticUpdates: true (enables automatic updates)
+      // Set the check interval (in seconds)
+      await autoUpdater.setScheduledCheckInterval(86400); // 24 hours
+      print('⏰ Scheduled check interval: 24 hours');
       
       _isInitialized = true;
       print('✅ Auto-updater initialized successfully');
-      print('📍 Feed URL: $_feedURL');
-      print('🔄 Automatic checks enabled (every 24 hours)');
       
-      // Actually trigger a check on startup to ensure it works
-      print('🔍 Performing startup update check...');
-      await checkForUpdates();
+      // Delay the initial check to ensure Sparkle is fully initialized
+      // This avoids the "updater hasn't been started yet" error
+      Future.delayed(const Duration(seconds: 2), () async {
+        print('🔍 Performing delayed startup update check...');
+        try {
+          await checkForUpdates();
+        } catch (e) {
+          print('⚠️ Initial update check failed: $e');
+        }
+      });
     } catch (error) {
       print('❌ Error initializing auto-updater: $error');
     }
@@ -89,11 +92,8 @@ class AutoUpdateService {
   /// Get current app version from package info
   Future<String> getCurrentVersion() async {
     try {
-      // For now return the version from pubspec.yaml
-      // In a production app, you'd use package_info_plus:
-      // final info = await PackageInfo.fromPlatform();
-      // return info.version;
-      return '1.2.3'; // Current version
+      final info = await PackageInfo.fromPlatform();
+      return info.version;
     } catch (error) {
       print('❌ Error getting app version: $error');
       return 'Unknown';
